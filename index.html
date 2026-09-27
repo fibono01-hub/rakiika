@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="bg">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Градус на ракията</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Градус">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' fill='%23123029'/%3E%3Crect x='80' y='22' width='20' height='40' rx='4' fill='%23d98a4e'/%3E%3Cpath d='M70 62h40l10 18v70a8 8 0 0 1-8 8H68a8 8 0 0 1-8-8V80z' fill='%23e8efe9'/%3E%3Cpath d='M60 104h60v46a8 8 0 0 1-8 8H68a8 8 0 0 1-8-8z' fill='%23d98a4e'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Yeseva+One&family=Commissioner:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme: light;
+  --bg:#eef2f0;
+  --panel:#ffffff;
+  --ink:#16221f;
+  --muted:#5c6b66;
+  --line:#d3dcd8;
+  --field:#f6f8f7;
+  --copper:#b25a26;
+  --copper-soft:#f3e3d7;
+  --glass:#2f6b5c;
+  --warn:#9a6a00;
+  --warn-soft:#fbf0d4;
+  --display:"Yeseva One", Georgia, "Times New Roman", serif;
+  --body:"Commissioner", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --bg:#0e1714; --panel:#15211d; --ink:#e6ede9; --muted:#93a39d;
+    --line:#2a3833; --field:#1b2925; --copper:#e0915a; --copper-soft:#3a2518;
+    --glass:#7fc2ae; --warn:#e7b94b; --warn-soft:#3a2f12;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --bg:#0e1714; --panel:#15211d; --ink:#e6ede9; --muted:#93a39d;
+  --line:#2a3833; --field:#1b2925; --copper:#e0915a; --copper-soft:#3a2518;
+  --glass:#7fc2ae; --warn:#e7b94b; --warn-soft:#3a2f12;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font:16px/1.5 var(--body);
+  padding:max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+}
+.wrap{max-width:520px; margin:0 auto; display:flex; flex-direction:column; gap:16px}
+header{display:flex; align-items:baseline; justify-content:space-between; gap:12px; padding-top:4px}
+h1{font:400 28px/1.1 var(--display); margin:0; letter-spacing:.2px; text-wrap:balance}
+.sub{margin:4px 0 0; color:var(--muted); font-size:14px}
+
+.tabs{display:grid; grid-template-columns:1fr 1fr; gap:4px; padding:4px; background:var(--panel); border:1px solid var(--line); border-radius:12px}
+.tabs button{
+  font:600 15px/1.2 var(--body); color:var(--muted); background:transparent;
+  border:0; border-radius:9px; padding:11px 8px; cursor:pointer;
+}
+.tabs button[aria-selected="true"]{background:var(--copper); color:#fff}
+:root[data-theme="dark"] .tabs button[aria-selected="true"]{color:#1a0f08}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .tabs button[aria-selected="true"]{color:#1a0f08} }
+button:focus-visible, input:focus-visible{outline:2px solid var(--copper); outline-offset:2px}
+
+.card{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:16px; display:flex; flex-direction:column; gap:14px}
+.fields{display:flex; flex-direction:column; gap:12px}
+.field{display:flex; flex-direction:column; gap:6px}
+.field label{font-size:13px; font-weight:600; color:var(--muted); letter-spacing:.3px; text-transform:uppercase}
+.inbox{display:flex; align-items:center; background:var(--field); border:1px solid var(--line); border-radius:10px; padding:0 12px}
+.inbox:focus-within{border-color:var(--copper)}
+.inbox input{
+  flex:1; min-width:0; border:0; background:transparent; color:var(--ink);
+  font:500 22px/1 var(--mono); padding:12px 0; font-variant-numeric:tabular-nums;
+}
+.inbox input:focus{outline:none}
+.unit{font:500 15px var(--mono); color:var(--muted); padding-left:8px}
+
+.result{display:flex; flex-direction:column; gap:12px}
+.big{display:flex; flex-direction:column; gap:2px}
+.big .k{font-size:13px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.3px}
+.big .v{font:500 44px/1.05 var(--mono); color:var(--copper); font-variant-numeric:tabular-nums}
+.big .v small{font-size:20px; color:var(--muted); margin-left:4px}
+.rows{display:grid; grid-template-columns:1fr auto; gap:6px 12px; font-size:15px; border-top:1px solid var(--line); padding-top:12px}
+.rows dt{color:var(--muted)} .rows dd{margin:0; font-family:var(--mono); font-variant-numeric:tabular-nums; text-align:right}
+
+.note{font-size:14px; border-radius:10px; padding:10px 12px; background:var(--warn-soft); color:var(--ink); border:1px solid var(--line)}
+.note b{color:var(--warn)}
+
+/* спиртомер */
+.meter{display:flex; flex-direction:column; gap:6px}
+.meter svg{width:100%; height:auto; display:block}
+.meter .cap{font-size:12px; color:var(--muted)}
+
+details{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:12px 16px}
+summary{cursor:pointer; font-weight:600}
+details p, details li{color:var(--muted); font-size:14px; max-width:65ch}
+details ul{padding-left:18px; margin:8px 0}
+.theme{background:none; border:1px solid var(--line); color:var(--muted); border-radius:8px; padding:6px 10px; font:500 13px var(--body); cursor:pointer}
+@media (prefers-reduced-motion: no-preference){ .mk{transition:transform .25s ease} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Градус на ракията</h1>
+      <p class="sub">Разреждане с вода, с отчитане на свиването на обема</p>
+    </div>
+    <button class="theme" id="themeBtn" type="button" aria-label="Смени темата">◐</button>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button role="tab" id="tab-water" aria-selected="true" type="button">Колко вода?</button>
+    <button role="tab" id="tab-abv" aria-selected="false" type="button">Какъв градус?</button>
+  </div>
+
+  <form class="card" id="form" autocomplete="off" onsubmit="return false">
+    <div class="fields">
+      <div class="field">
+        <label for="vol">Количество ракия</label>
+        <div class="inbox"><input id="vol" inputmode="decimal" value="10"><span class="unit">л</span></div>
+      </div>
+      <div class="field">
+        <label for="a1">Сегашен градус</label>
+        <div class="inbox"><input id="a1" inputmode="decimal" value="60"><span class="unit">°</span></div>
+      </div>
+      <div class="field" id="f-target">
+        <label for="a2">Желан градус</label>
+        <div class="inbox"><input id="a2" inputmode="decimal" value="45"><span class="unit">°</span></div>
+      </div>
+      <div class="field" id="f-water" hidden>
+        <label for="w">Добавена вода</label>
+        <div class="inbox"><input id="w" inputmode="decimal" value="3"><span class="unit">л</span></div>
+      </div>
+    </div>
+  </form>
+
+  <section class="card result" aria-live="polite">
+    <div class="big">
+      <span class="k" id="bigK">Добави вода</span>
+      <span class="v" id="bigV">—</span>
+    </div>
+    <dl class="rows" id="rows"></dl>
+    <div class="meter">
+      <svg id="meter" viewBox="0 0 340 64" role="img" aria-label="Скала на спиртомер"></svg>
+      <span class="cap">Скала като на спиртомер: <span style="color:var(--muted)">○</span> преди, <span style="color:var(--copper)">●</span> след</span>
+    </div>
+    <div class="note" id="note" hidden></div>
+  </section>
+
+  <details>
+    <summary>Как смята</summary>
+    <ul>
+      <li>Алкохолът и водата не се събират просто по обем: 1 л + 1 л дава малко под 2 л. Затова смятам по маса, с таблица за плътността на спирт-вода при 20 °C.</li>
+      <li>Количеството чист алкохол не се променя, затова крайният обем винаги е <i>количество × сегашен ÷ нов градус</i>. Водата, която трябва да налееш, е повече от разликата, защото сместа се свива.</li>
+      <li>Мери градуса със спиртомера при около 20 °C. При топла ракия спиртомерът показва повече, при студена — по-малко.</li>
+      <li>Наливай водата на части, разбъркай, остави да престои и премери пак.</li>
+    </ul>
+  </details>
+</div>
+
+<script>
+(function(){
+  // Плътност на спирт-вода при 20 °C (g/cm³) по масов процент спирт, стъпка 5%
+  const W = [0,5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100].map(x=>x/100);
+  const RHO = [.99823,.98938,.98187,.97514,.96864,.96168,.95382,.94494,.93518,.92472,.91384,.90258,.89113,.87948,.86766,.85564,.84344,.83095,.81797,.80424,.78934];
+  const RHO_E = 0.78934, RHO_W = 0.99823;
+  const ABV = W.map((w,i)=> w*RHO[i]/RHO_E); // обемна част
+
+  // Монотонна кубична интерполация (Fritsch–Carlson)
+  function pchip(xs, ys){
+    const n=xs.length, h=[], d=[], m=new Array(n);
+    for(let i=0;i<n-1;i++){ h[i]=xs[i+1]-xs[i]; d[i]=(ys[i+1]-ys[i])/h[i]; }
+    m[0]=d[0]; m[n-1]=d[n-2];
+    for(let i=1;i<n-1;i++){
+      if(d[i-1]*d[i]<=0) m[i]=0;
+      else { const w1=2*h[i]+h[i-1], w2=h[i]+2*h[i-1]; m[i]=(w1+w2)/(w1/d[i-1]+w2/d[i]); }
+    }
+    return function(x){
+      if(x<=xs[0]) return ys[0]; if(x>=xs[n-1]) return ys[n-1];
+      let i=0; while(x>xs[i+1]) i++;
+      const t=(x-xs[i])/h[i], t2=t*t, t3=t2*t;
+      return (2*t3-3*t2+1)*ys[i] + (t3-2*t2+t)*h[i]*m[i] + (-2*t3+3*t2)*ys[i+1] + (t3-t2)*h[i]*m[i+1];
+    };
+  }
+  const rhoOfW = pchip(W,RHO), wOfAbv = pchip(ABV,W), abvOfW = pchip(W,ABV);
+
+  const $ = id=>document.getElementById(id);
+  const num = el => { const v=parseFloat(String(el.value).replace(',','.').replace(/\s/g,'')); return isFinite(v)?v:NaN; };
+  const fmt = (x,d=2) => x.toLocaleString('bg-BG',{minimumFractionDigits:d,maximumFractionDigits:d});
+  const fmtL = x => x<1 ? fmt(x*1000,0)+' мл' : fmt(x,2)+' л';
+
+  let mode='water';
+  function load(){ try{ const s=JSON.parse(localStorage.getItem('rakia')||'null'); if(s){ ['vol','a1','a2','w'].forEach(k=>{ if(s[k]!=null) $(k).value=s[k]; }); if(s.mode) mode=s.mode; } }catch(e){} }
+  function save(){ try{ localStorage.setItem('rakia', JSON.stringify({vol:$('vol').value,a1:$('a1').value,a2:$('a2').value,w:$('w').value,mode})); }catch(e){} }
+
+  function setMode(m){
+    mode=m;
+    $('tab-water').setAttribute('aria-selected', m==='water');
+    $('tab-abv').setAttribute('aria-selected', m==='abv');
+    $('f-target').hidden = m!=='water';
+    $('f-water').hidden = m!=='abv';
+    calc(); save();
+  }
+
+  function meter(a1,a2){
+    const svg=$('meter'), x0=14, x1=326, max=100;
+    const X=v=>x0+(x1-x0)*Math.min(Math.max(v,0),max)/max;
+    let s=`<rect x="${x0}" y="18" width="${x1-x0}" height="10" rx="5" fill="var(--field)" stroke="var(--line)"/>`;
+    if(isFinite(a1)&&isFinite(a2)) s+=`<rect x="${X(Math.min(a1,a2))}" y="18" width="${Math.abs(X(a1)-X(a2))}" height="10" fill="var(--copper-soft)"/>`;
+    for(let v=0;v<=max;v+=5){
+      const big=v%10===0, x=X(v);
+      s+=`<line x1="${x}" x2="${x}" y1="30" y2="${big?40:35}" stroke="var(--muted)" stroke-width="1"/>`;
+      if(v%20===0) s+=`<text x="${x}" y="54" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--muted)">${v}</text>`;
+    }
+    if(isFinite(a1)) s+=`<circle cx="${X(a1)}" cy="23" r="7" fill="var(--panel)" stroke="var(--muted)" stroke-width="2"/>`;
+    if(isFinite(a2)) s+=`<circle cx="${X(a2)}" cy="23" r="7" fill="var(--copper)" stroke="var(--panel)" stroke-width="2"/>`;
+    svg.innerHTML=s;
+  }
+
+  function show(k, v, unit, rows, note, a1, a2){
+    $('bigK').textContent=k;
+    $('bigV').innerHTML = v==null ? '—' : v + (unit?`<small>${unit}</small>`:'');
+    $('rows').innerHTML = rows.map(r=>`<dt>${r[0]}</dt><dd>${r[1]}</dd>`).join('');
+    $('note').hidden=!note; if(note) $('note').innerHTML=note;
+    meter(a1,a2);
+  }
+
+  function calc(){
+    const V=num($('vol')), A=num($('a1'));
+    if(!(V>0)) return show(mode==='water'?'Добави вода':'Нов градус', null,'',[],'Въведи количеството ракия в литри.',NaN,NaN);
+    if(!(A>0&&A<=100)) return show(mode==='water'?'Добави вода':'Нов градус', null,'',[],'Сегашният градус трябва да е между 0 и 100.',NaN,NaN);
+    const w1=wOfAbv(A/100), m1=V*rhoOfW(w1), e=m1*w1;
+
+    if(mode==='water'){
+      const B=num($('a2'));
+      if(!(B>0)) return show('Добави вода',null,'',[],'Въведи желания градус.',A,NaN);
+      if(B>=A) return show('Добави вода',null,'',[],`<b>С вода градусът само пада.</b> За ${fmt(B,1)}° от ${fmt(A,1)}° трябва да смесиш с по-силна ракия.`,A,B);
+      const w2=wOfAbv(B/100), m2=e/w2, water=(m2-m1)/RHO_W, Vf=m2/rhoOfW(w2);
+      const simple=V*(A/B-1);
+      const big = water<1 ? fmt(water*1000,0) : fmt(water,2);
+      show('Добави вода', big, water<1?'мл':'л', [
+        ['Крайно количество', fmtL(Vf)],
+        ['Чист алкохол', fmtL(V*A/100)],
+        ['Вода на 1 л ракия', fmtL(water/V)],
+        ['По простата формула', fmtL(simple)],
+      ], null, A, B);
+    } else {
+      const Wv=num($('w'));
+      if(!(Wv>=0)) return show('Нов градус',null,'',[],'Въведи колко вода си добавил, в литри.',A,NaN);
+      const m2=m1+Wv*RHO_W, w2=e/m2, B=abvOfW(w2)*100, Vf=m2/rhoOfW(w2);
+      show('Нов градус', fmt(B,1), '°', [
+        ['Крайно количество', fmtL(Vf)],
+        ['Сбор на обемите', fmtL(V+Wv)],
+        ['Свиване', fmtL(Math.max(V+Wv-Vf,0))],
+        ['По простата формула', fmt(A*V/(V+Wv),1)+'°'],
+      ], null, A, B);
+    }
+  }
+
+  ['vol','a1','a2','w'].forEach(id=>$(id).addEventListener('input',()=>{calc();save();}));
+  $('tab-water').addEventListener('click',()=>setMode('water'));
+  $('tab-abv').addEventListener('click',()=>setMode('abv'));
+
+  // тема: авто → тъмна → светла
+  const root=document.documentElement;
+  function applyTheme(t){ if(t) root.setAttribute('data-theme',t); else root.removeAttribute('data-theme'); }
+  let theme=null; try{ theme=localStorage.getItem('rakia-theme'); }catch(e){}
+  applyTheme(theme);
+  $('themeBtn').addEventListener('click',()=>{
+    theme = theme===null?'dark': theme==='dark'?'light':null;
+    applyTheme(theme); try{ theme?localStorage.setItem('rakia-theme',theme):localStorage.removeItem('rakia-theme'); }catch(e){}
+  });
+
+  load(); setMode(mode);
+})();
+</script>
+</body>
+</html>
