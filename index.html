@@ -26,6 +26,7 @@
   --glass:#2f6b5c;
   --warn:#9a6a00;
   --warn-soft:#fbf0d4;
+  --on-copper:#ffffff;
   --display:"Yeseva One", Georgia, "Times New Roman", serif;
   --body:"Commissioner", system-ui, -apple-system, "Segoe UI", sans-serif;
   --mono:"IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
@@ -35,14 +36,14 @@
     color-scheme: dark;
     --bg:#0e1714; --panel:#15211d; --ink:#e6ede9; --muted:#93a39d;
     --line:#2a3833; --field:#1b2925; --copper:#e0915a; --copper-soft:#3a2518;
-    --glass:#7fc2ae; --warn:#e7b94b; --warn-soft:#3a2f12;
+    --glass:#7fc2ae; --warn:#e7b94b; --warn-soft:#3a2f12; --on-copper:#1a0f08;
   }
 }
 :root[data-theme="dark"]{
   color-scheme: dark;
   --bg:#0e1714; --panel:#15211d; --ink:#e6ede9; --muted:#93a39d;
   --line:#2a3833; --field:#1b2925; --copper:#e0915a; --copper-soft:#3a2518;
-  --glass:#7fc2ae; --warn:#e7b94b; --warn-soft:#3a2f12;
+  --glass:#7fc2ae; --warn:#e7b94b; --warn-soft:#3a2f12; --on-copper:#1a0f08;
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -62,9 +63,7 @@ h1{font:400 28px/1.1 var(--display); margin:0; letter-spacing:.2px; text-wrap:ba
   font:600 15px/1.2 var(--body); color:var(--muted); background:transparent;
   border:0; border-radius:9px; padding:11px 8px; cursor:pointer;
 }
-.tabs button[aria-selected="true"]{background:var(--copper); color:#fff}
-:root[data-theme="dark"] .tabs button[aria-selected="true"]{color:#1a0f08}
-@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .tabs button[aria-selected="true"]{color:#1a0f08} }
+.tabs button[aria-selected="true"]{background:var(--copper); color:var(--on-copper)}
 button:focus-visible, input:focus-visible{outline:2px solid var(--copper); outline-offset:2px}
 
 .card{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:16px; display:flex; flex-direction:column; gap:14px}
@@ -114,9 +113,7 @@ details ul{padding-left:18px; margin:8px 0}
 .state .v{font:500 22px/1.1 var(--mono); font-variant-numeric:tabular-nums}
 .state .v.c{color:var(--copper)}
 h2{font:600 13px/1.2 var(--body); text-transform:uppercase; letter-spacing:.4px; color:var(--muted); margin:0}
-.btn{font:600 15px/1.2 var(--body); border-radius:10px; padding:13px 14px; cursor:pointer; border:1px solid var(--copper); background:var(--copper); color:#fff}
-:root[data-theme="dark"] .btn{color:#1a0f08}
-@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .btn{color:#1a0f08} }
+.btn{font:600 15px/1.2 var(--body); border-radius:10px; padding:13px 14px; cursor:pointer; border:1px solid var(--copper); background:var(--copper); color:var(--on-copper)}
 .btn.ghost{background:transparent; color:var(--copper)}
 .btn.danger{background:transparent; color:var(--muted); border-color:var(--line)}
 .btn.danger.armed{color:#fff; background:#b3261e; border-color:#b3261e}
@@ -329,8 +326,9 @@ footer{color:var(--muted); font-size:12px; text-align:center}
 
 <script>
 (function(){
-  const APP_VERSION = '1.2';
+  const APP_VERSION = '1.2.1';
   const CHANGELOG = [
+    ['1.2.1','28.09.2026','Надписите на бутоните „Нова партида“ и „Изтрий партидата“ вече се виждат на нощната тема.'],
     ['1.2','28.09.2026','Редакция и изтриване на всяка стъпка и на началото на партидата. Следващите стъпки се преизчисляват. Номер на версия.'],
     ['1.1','28.09.2026','Таб „Партида“: разреждане на няколко стъпки, план, дневник с реално измерени стойности, архив на данните.'],
     ['1.0','27.09.2026','Колко вода и какъв градус, с отчитане на свиването на обема.'],
