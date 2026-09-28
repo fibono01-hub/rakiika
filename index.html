@@ -57,7 +57,7 @@ header{display:flex; align-items:baseline; justify-content:space-between; gap:12
 h1{font:400 28px/1.1 var(--display); margin:0; letter-spacing:.2px; text-wrap:balance}
 .sub{margin:4px 0 0; color:var(--muted); font-size:14px}
 
-.tabs{display:grid; grid-template-columns:1fr 1fr; gap:4px; padding:4px; background:var(--panel); border:1px solid var(--line); border-radius:12px}
+.tabs{display:grid; grid-template-columns:repeat(3,1fr); gap:4px; padding:4px; background:var(--panel); border:1px solid var(--line); border-radius:12px}
 .tabs button{
   font:600 15px/1.2 var(--body); color:var(--muted); background:transparent;
   border:0; border-radius:9px; padding:11px 8px; cursor:pointer;
@@ -100,6 +100,38 @@ details{background:var(--panel); border:1px solid var(--line); border-radius:14p
 summary{cursor:pointer; font-weight:600}
 details p, details li{color:var(--muted); font-size:14px; max-width:65ch}
 details ul{padding-left:18px; margin:8px 0}
+/* партида */
+.row2{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:12px}
+.row2 > *, .inbox{min-width:0}
+.inbox input{width:100%}
+.tabs button{font-size:14px; padding-inline:4px}
+.inbox select, .inbox input[type="date"], .inbox input.txt{font:500 17px/1.2 var(--body); padding:12px 0; -webkit-appearance:none; appearance:none; border:0; background:transparent; color:var(--ink); flex:1; min-width:0}
+.inbox select:focus{outline:none}
+.opt{font-size:12px; color:var(--muted); font-weight:400; text-transform:none; letter-spacing:0}
+.state{display:grid; grid-template-columns:repeat(3,1fr); gap:8px}
+.state div{display:flex; flex-direction:column; gap:2px}
+.state .k{font-size:12px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.3px}
+.state .v{font:500 22px/1.1 var(--mono); font-variant-numeric:tabular-nums}
+.state .v.c{color:var(--copper)}
+h2{font:600 13px/1.2 var(--body); text-transform:uppercase; letter-spacing:.4px; color:var(--muted); margin:0}
+.btn{font:600 15px/1.2 var(--body); border-radius:10px; padding:13px 14px; cursor:pointer; border:1px solid var(--copper); background:var(--copper); color:#fff}
+:root[data-theme="dark"] .btn{color:#1a0f08}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .btn{color:#1a0f08} }
+.btn.ghost{background:transparent; color:var(--copper)}
+.btn.danger{background:transparent; color:var(--muted); border-color:var(--line)}
+.btn.danger.armed{color:#fff; background:#b3261e; border-color:#b3261e}
+.btns{display:flex; flex-wrap:wrap; gap:8px}
+.btns .btn{flex:1 1 140px}
+.tbl{overflow-x:auto}
+.tbl table{width:100%; border-collapse:collapse; font-size:14px; font-variant-numeric:tabular-nums}
+.tbl th{font-size:11px; text-transform:uppercase; letter-spacing:.3px; color:var(--muted); font-weight:600; text-align:right; padding:6px 4px; border-bottom:1px solid var(--line)}
+.tbl th:first-child, .tbl td:first-child{text-align:left}
+.tbl td{font-family:var(--mono); text-align:right; padding:8px 4px; border-bottom:1px solid var(--line); white-space:nowrap}
+.tbl td .p{display:block; font-size:11px; color:var(--muted)}
+.tbl tr.start td{color:var(--muted)}
+.empty{color:var(--muted); font-size:14px; margin:0}
+textarea{width:100%; min-height:90px; font:13px/1.4 var(--mono); background:var(--field); color:var(--ink); border:1px solid var(--line); border-radius:10px; padding:10px}
+.msg{font-size:13px; color:var(--glass); min-height:1em; margin:0}
 .theme{background:none; border:1px solid var(--line); color:var(--muted); border-radius:8px; padding:6px 10px; font:500 13px var(--body); cursor:pointer}
 @media (prefers-reduced-motion: no-preference){ .mk{transition:transform .25s ease} }
 </style>
@@ -117,8 +149,104 @@ details ul{padding-left:18px; margin:8px 0}
   <div class="tabs" role="tablist">
     <button role="tab" id="tab-water" aria-selected="true" type="button">Колко вода?</button>
     <button role="tab" id="tab-abv" aria-selected="false" type="button">Какъв градус?</button>
+    <button role="tab" id="tab-batch" aria-selected="false" type="button">Партида</button>
   </div>
 
+  <!-- ПАРТИДА -->
+  <div id="batchView" class="wrap" style="padding:0" hidden>
+    <section class="card" id="pickCard">
+      <div class="field">
+        <label for="bSel">Партида</label>
+        <div class="inbox"><select id="bSel"></select><span class="unit">▾</span></div>
+      </div>
+      <div class="btns">
+        <button class="btn ghost" id="bNewBtn" type="button">Нова партида</button>
+        <button class="btn danger" id="bDelBtn" type="button">Изтрий партидата</button>
+      </div>
+    </section>
+
+    <form class="card" id="newCard" onsubmit="return false" hidden>
+      <h2>Нова партида</h2>
+      <div class="field">
+        <label for="nName">Име</label>
+        <div class="inbox"><input class="txt" id="nName" placeholder="Сливова 2026"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label for="nVol">Обем</label><div class="inbox"><input id="nVol" inputmode="decimal" placeholder="20"><span class="unit">л</span></div></div>
+        <div class="field"><label for="nAbv">Градус</label><div class="inbox"><input id="nAbv" inputmode="decimal" placeholder="68"><span class="unit">°</span></div></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label for="nTarget">Крайна цел</label><div class="inbox"><input id="nTarget" inputmode="decimal" value="42"><span class="unit">°</span></div></div>
+        <div class="field"><label for="nSteps">Брой стъпки</label><div class="inbox"><input id="nSteps" inputmode="numeric" value="3"></div></div>
+      </div>
+      <div class="field"><label for="nDate">Дата</label><div class="inbox"><input type="date" id="nDate"></div></div>
+      <p class="msg" id="nMsg"></p>
+      <div class="btns">
+        <button class="btn" id="nStart" type="button">Започни партидата</button>
+        <button class="btn ghost" id="nCancel" type="button">Откажи</button>
+      </div>
+    </form>
+
+    <section class="card" id="curCard" hidden>
+      <h2>Сега в съда</h2>
+      <div class="state">
+        <div><span class="k">Обем</span><span class="v" id="sVol">—</span></div>
+        <div><span class="k">Градус</span><span class="v c" id="sAbv">—</span></div>
+        <div><span class="k">Цел</span><span class="v" id="sTgt">—</span></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label for="pTarget">Крайна цел</label><div class="inbox"><input id="pTarget" inputmode="decimal"><span class="unit">°</span></div></div>
+        <div class="field"><label for="pSteps">Остават стъпки</label><div class="inbox"><input id="pSteps" inputmode="numeric"></div></div>
+      </div>
+      <div class="tbl"><table>
+        <thead><tr><th>План</th><th>До</th><th>Вода</th><th>Обем</th></tr></thead>
+        <tbody id="planBody"></tbody>
+      </table></div>
+      <p class="empty" id="planNote" hidden></p>
+    </section>
+
+    <form class="card" id="stepCard" onsubmit="return false" hidden>
+      <h2 id="stepTitle">Стъпка 1</h2>
+      <div class="row2">
+        <div class="field"><label for="sGoal">Разреждам до</label><div class="inbox"><input id="sGoal" inputmode="decimal"><span class="unit">°</span></div></div>
+        <div class="field"><label for="sWater">Наливам вода</label><div class="inbox"><input id="sWater" inputmode="decimal"><span class="unit">л</span></div></div>
+      </div>
+      <p class="empty" id="sPred">—</p>
+      <div class="row2">
+        <div class="field"><label for="sMAbv">Измерен градус <span class="opt">по желание</span></label><div class="inbox"><input id="sMAbv" inputmode="decimal"><span class="unit">°</span></div></div>
+        <div class="field"><label for="sMVol">Измерен обем <span class="opt">по желание</span></label><div class="inbox"><input id="sMVol" inputmode="decimal"><span class="unit">л</span></div></div>
+      </div>
+      <div class="field"><label for="sDate">Дата</label><div class="inbox"><input type="date" id="sDate"></div></div>
+      <div class="field"><label for="sNote">Бележка <span class="opt">по желание</span></label><div class="inbox"><input class="txt" id="sNote" placeholder="напр. престоя 3 дни"></div></div>
+      <p class="msg" id="sMsg"></p>
+      <button class="btn" id="sSave" type="button">Запиши стъпката</button>
+    </form>
+
+    <section class="card" id="logCard" hidden>
+      <h2>Дневник</h2>
+      <div class="tbl"><table>
+        <thead><tr><th>Дата</th><th>Вода</th><th>Обем</th><th>Градус</th></tr></thead>
+        <tbody id="logBody"></tbody>
+      </table></div>
+      <p class="empty">Под реалната стойност с дребен шрифт е изчислената. Ако не си мерил, остава изчислената.</p>
+      <button class="btn danger" id="undoBtn" type="button">Изтрий последната стъпка</button>
+    </section>
+
+    <details>
+      <summary>Архив на данните</summary>
+      <p>Партидите се пазят само на това устройство, в този браузър. Копирай ги от време на време и ги дръж някъде, например в Бележки.</p>
+      <div class="btns">
+        <button class="btn ghost" id="expBtn" type="button">Копирай данните</button>
+        <button class="btn ghost" id="impBtn" type="button">Възстанови от текста</button>
+      </div>
+      <p></p>
+      <label for="io" class="opt">Данни (JSON)</label>
+      <textarea id="io" spellcheck="false" placeholder="Постави копираните данни тук и натисни „Възстанови“"></textarea>
+      <p class="msg" id="ioMsg"></p>
+    </details>
+  </div>
+
+  <div id="calcView" class="wrap" style="padding:0">
   <form class="card" id="form" autocomplete="off" onsubmit="return false">
     <div class="fields">
       <div class="field">
@@ -162,6 +290,7 @@ details ul{padding-left:18px; margin:8px 0}
       <li>Наливай водата на части, разбъркай, остави да престои и премери пак.</li>
     </ul>
   </details>
+  </div>
 </div>
 
 <script>
@@ -203,10 +332,170 @@ details ul{padding-left:18px; margin:8px 0}
     mode=m;
     $('tab-water').setAttribute('aria-selected', m==='water');
     $('tab-abv').setAttribute('aria-selected', m==='abv');
+    $('tab-batch').setAttribute('aria-selected', m==='batch');
+    $('calcView').hidden = m==='batch';
+    $('batchView').hidden = m!=='batch';
     $('f-target').hidden = m!=='water';
     $('f-water').hidden = m!=='abv';
-    calc(); save();
+    if(m==='batch') renderBatch(); else calc();
+    save();
   }
+
+  // ---------- общи сметки ----------
+  function waterFor(V,A,B){ // колко вода за от A до B
+    const w1=wOfAbv(A/100), m1=V*rhoOfW(w1), e=m1*w1, w2=wOfAbv(B/100), m2=e/w2;
+    return { water:(m2-m1)/RHO_W, vol:m2/rhoOfW(w2) };
+  }
+  function abvAfter(V,A,Wv){ // какъв градус след Wv л вода
+    const w1=wOfAbv(A/100), m1=V*rhoOfW(w1), e=m1*w1, m2=m1+Wv*RHO_W, w2=e/m2;
+    return { abv:abvOfW(w2)*100, vol:m2/rhoOfW(w2) };
+  }
+
+  // ---------- партиди ----------
+  const today = () => { const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,10); };
+  const fDate = s => { try{ const [y,m,d]=s.split('-'); return `${d}.${m}.${y.slice(2)}`; }catch(e){ return s||''; } };
+  let db = { batches:[], cur:null };
+  function dbLoad(){ try{ const s=JSON.parse(localStorage.getItem('rakia-batches')||'null'); if(s&&Array.isArray(s.batches)) db=s; }catch(e){} }
+  function dbSave(){ try{ localStorage.setItem('rakia-batches', JSON.stringify(db)); }catch(e){} }
+  const curB = () => db.batches.find(b=>b.id===db.cur) || null;
+  function stateOf(b){
+    let vol=b.start.vol, abv=b.start.abv;
+    for(const s of b.steps){ vol = s.vol ?? s.predVol; abv = s.abv ?? s.predAbv; }
+    return {vol,abv};
+  }
+  let showNew=false, waterDirty=false, goalDirty=false;
+
+  function planRows(b){
+    const {vol,abv}=stateOf(b), T=b.target, n=Math.max(1,Math.round(b.stepsLeft||1));
+    if(!(T>0) || T>=abv-0.05) return [];
+    const rows=[]; let V=vol, A=abv;
+    for(let i=1;i<=n;i++){
+      const B = abv-(abv-T)*i/n, r=waterFor(V,A,B);
+      rows.push({i,B,water:r.water,vol:r.vol}); V=r.vol; A=B;
+    }
+    return rows;
+  }
+
+  function renderBatch(){
+    // избор на партида
+    const sel=$('bSel');
+    sel.innerHTML = db.batches.length ? db.batches.map(b=>`<option value="${b.id}">${esc(b.name)}</option>`).join('') : '<option value="">Още няма партиди</option>';
+    if(db.cur) sel.value=db.cur;
+    const b=curB();
+    const creating = showNew || !b;
+    $('newCard').hidden = !creating;
+    $('pickCard').hidden = !db.batches.length;
+    $('bDelBtn').hidden = !b;
+    $('nCancel').hidden = !b;
+    if(creating && !$('nDate').value) $('nDate').value=today();
+    ['curCard','stepCard','logCard'].forEach(id=>$(id).hidden = creating || !b);
+    if(creating || !b) return;
+
+    const {vol,abv}=stateOf(b);
+    $('sVol').textContent = fmt(vol,2)+' л';
+    $('sAbv').textContent = fmt(abv,1)+'°';
+    $('sTgt').textContent = fmt(b.target,1)+'°';
+    if(document.activeElement!==$('pTarget')) $('pTarget').value = String(b.target).replace('.',',');
+    if(document.activeElement!==$('pSteps')) $('pSteps').value = b.stepsLeft;
+
+    const rows=planRows(b);
+    $('planBody').innerHTML = rows.map(r=>`<tr><td>${b.steps.length+r.i}</td><td>${fmt(r.B,1)}°</td><td>${fmtL(r.water)}</td><td>${fmt(r.vol,2)} л</td></tr>`).join('');
+    const done = !rows.length;
+    $('planNote').hidden = !done;
+    $('planNote').textContent = done ? `Партидата е на ${fmt(abv,1)}°, целта е достигната. Ако искаш още, смени крайната цел.` : '';
+
+    $('stepTitle').textContent = `Стъпка ${b.steps.length+1}`;
+    if(!goalDirty) $('sGoal').value = rows.length ? fmt(rows[0].B,1).replace(/\s/g,'') : '';
+    if(!$('sDate').value) $('sDate').value=today();
+    updateStep(b);
+
+    // дневник
+    let h=`<tr class="start"><td>${fDate(b.start.date)}</td><td>начало</td><td>${fmt(b.start.vol,2)}</td><td>${fmt(b.start.abv,1)}°</td></tr>`;
+    let prevA=b.start.abv;
+    b.steps.forEach(s=>{
+      const vReal=s.vol!=null, aReal=s.abv!=null;
+      h+=`<tr><td>${fDate(s.date)}${s.note?`<span class="p" style="font-family:var(--body)">${esc(s.note)}</span>`:''}</td><td>${fmt(s.water,2)}</td>`+
+         `<td>${fmt(vReal?s.vol:s.predVol,2)}${vReal?`<span class="p">${fmt(s.predVol,2)}</span>`:'<span class="p">изчисл.</span>'}</td>`+
+         `<td>${fmt(aReal?s.abv:s.predAbv,1)}°${aReal?`<span class="p">${fmt(s.predAbv,1)}°</span>`:'<span class="p">изчисл.</span>'}</td></tr>`;
+    });
+    $('logBody').innerHTML=h;
+    $('undoBtn').hidden = !b.steps.length;
+  }
+
+  function updateStep(b){
+    const {vol,abv}=stateOf(b);
+    const G=num($('sGoal'));
+    if(!waterDirty){
+      if(G>0 && G<abv) $('sWater').value = fmt(waterFor(vol,abv,G).water,2).replace(/\s/g,'');
+      else $('sWater').value='';
+    }
+    const Wv=num($('sWater'));
+    if(Wv>=0){
+      const r=abvAfter(vol,abv,Wv);
+      $('sPred').innerHTML = `Очаквано след ${fmtL(Wv)} вода: <b style="color:var(--copper)">${fmt(r.abv,1)}°</b> и ${fmt(r.vol,2)} л.`;
+      $('sMAbv').placeholder = fmt(r.abv,1).replace(/\s/g,'');
+      $('sMVol').placeholder = fmt(r.vol,2).replace(/\s/g,'');
+    } else {
+      $('sPred').textContent = G>=abv ? 'С вода градусът може само да падне.' : 'Въведи до какъв градус разреждаш или колко вода наливаш.';
+    }
+  }
+
+  function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+  function arm(btn, label, fn){
+    if(btn.classList.contains('armed')){ btn.classList.remove('armed'); btn.textContent=btn.dataset.l; fn(); return; }
+    btn.dataset.l=btn.textContent; btn.textContent=label; btn.classList.add('armed');
+    setTimeout(()=>{ if(btn.classList.contains('armed')){ btn.classList.remove('armed'); btn.textContent=btn.dataset.l; } },4000);
+  }
+  const resetStep = () => { waterDirty=false; goalDirty=false; ['sGoal','sWater','sMAbv','sMVol','sNote'].forEach(id=>$(id).value=''); $('sDate').value=today(); };
+
+  $('bSel').addEventListener('change',e=>{ db.cur=e.target.value; showNew=false; resetStep(); dbSave(); renderBatch(); });
+  $('bNewBtn').addEventListener('click',()=>{ showNew=true; $('nMsg').textContent=''; renderBatch(); $('nName').focus(); });
+  $('nCancel').addEventListener('click',()=>{ showNew=false; renderBatch(); });
+  $('bDelBtn').addEventListener('click',e=>arm(e.currentTarget,'Натисни пак за изтриване',()=>{
+    db.batches=db.batches.filter(b=>b.id!==db.cur); db.cur=db.batches[0]?.id||null; dbSave(); resetStep(); renderBatch();
+  }));
+  $('nStart').addEventListener('click',()=>{
+    const V=num($('nVol')), A=num($('nAbv')), T=num($('nTarget')), n=Math.round(num($('nSteps')));
+    if(!(V>0)) return $('nMsg').textContent='Въведи обема в литри.';
+    if(!(A>0&&A<=100)) return $('nMsg').textContent='Градусът трябва да е между 0 и 100.';
+    if(!(T>0&&T<A)) return $('nMsg').textContent='Крайната цел трябва да е под сегашния градус.';
+    const b={ id:Date.now().toString(36), name:$('nName').value.trim()||('Партида '+fDate($('nDate').value||today())),
+      target:T, stepsLeft:(n>0?n:1), start:{date:$('nDate').value||today(), vol:V, abv:A}, steps:[] };
+    db.batches.unshift(b); db.cur=b.id; showNew=false; dbSave();
+    ['nName','nVol','nAbv'].forEach(id=>$(id).value=''); resetStep(); renderBatch();
+  });
+  $('pTarget').addEventListener('input',()=>{ const b=curB(), T=num($('pTarget')); if(b&&T>0){ b.target=T; goalDirty=false; waterDirty=false; dbSave(); renderBatch(); } });
+  $('pSteps').addEventListener('input',()=>{ const b=curB(), n=Math.round(num($('pSteps'))); if(b&&n>0){ b.stepsLeft=n; goalDirty=false; waterDirty=false; dbSave(); renderBatch(); } });
+  $('sGoal').addEventListener('input',()=>{ goalDirty=true; waterDirty=false; const b=curB(); if(b) updateStep(b); });
+  $('sWater').addEventListener('input',()=>{ waterDirty=true; const b=curB(); if(b) updateStep(b); });
+  $('sSave').addEventListener('click',()=>{
+    const b=curB(); if(!b) return;
+    const {vol,abv}=stateOf(b), Wv=num($('sWater'));
+    if(!(Wv>=0)) return $('sMsg').textContent='Въведи колко вода си налял.';
+    const r=abvAfter(vol,abv,Wv), mA=num($('sMAbv')), mV=num($('sMVol'));
+    if($('sMAbv').value && !(mA>0&&mA<=100)) return $('sMsg').textContent='Измереният градус трябва да е между 0 и 100.';
+    if($('sMVol').value && !(mV>0)) return $('sMsg').textContent='Измереният обем трябва да е над 0.';
+    b.steps.push({ date:$('sDate').value||today(), water:Wv, predVol:r.vol, predAbv:r.abv,
+      vol: mV>0?mV:null, abv: mA>0?mA:null, note:$('sNote').value.trim()||null });
+    if(b.stepsLeft>1) b.stepsLeft--;
+    dbSave(); resetStep(); $('sMsg').textContent='Стъпката е записана.'; setTimeout(()=>$('sMsg').textContent='',2500);
+    renderBatch();
+  });
+  $('undoBtn').addEventListener('click',e=>arm(e.currentTarget,'Натисни пак за изтриване',()=>{
+    const b=curB(); if(!b||!b.steps.length) return; b.steps.pop(); b.stepsLeft++; dbSave(); resetStep(); renderBatch();
+  }));
+  $('expBtn').addEventListener('click',()=>{
+    const t=JSON.stringify(db); $('io').value=t;
+    const done=()=>{$('ioMsg').textContent='Копирано. Постави го в Бележки или другаде.';};
+    const fail=()=>{ $('io').focus(); $('io').select(); $('ioMsg').textContent='Текстът е маркиран отдолу. Копирай го ръчно.'; };
+    try{ navigator.clipboard.writeText(t).then(done,fail); }catch(e){ fail(); }
+  });
+  $('impBtn').addEventListener('click',()=>{
+    try{ const s=JSON.parse($('io').value); if(!s||!Array.isArray(s.batches)) throw 0;
+      db=s; if(!curB()) db.cur=db.batches[0]?.id||null; dbSave(); resetStep(); renderBatch(); $('ioMsg').textContent=`Възстановени ${db.batches.length} партиди.`;
+    }catch(e){ $('ioMsg').textContent='Текстът не прилича на копирани данни от това приложение.'; }
+  });
+  dbLoad();
 
   function meter(a1,a2){
     const svg=$('meter'), x0=14, x1=326, max=100;
@@ -266,6 +555,7 @@ details ul{padding-left:18px; margin:8px 0}
   ['vol','a1','a2','w'].forEach(id=>$(id).addEventListener('input',()=>{calc();save();}));
   $('tab-water').addEventListener('click',()=>setMode('water'));
   $('tab-abv').addEventListener('click',()=>setMode('abv'));
+  $('tab-batch').addEventListener('click',()=>setMode('batch'));
 
   // тема: авто → тъмна → светла
   const root=document.documentElement;
