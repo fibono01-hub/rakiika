@@ -131,6 +131,13 @@ h2{font:600 13px/1.2 var(--body); text-transform:uppercase; letter-spacing:.4px;
 .tbl tr.start td{color:var(--muted)}
 .empty{color:var(--muted); font-size:14px; margin:0}
 textarea{width:100%; min-height:90px; font:13px/1.4 var(--mono); background:var(--field); color:var(--ink); border:1px solid var(--line); border-radius:10px; padding:10px}
+#logBody tr[data-i]{cursor:pointer}
+#logBody tr[data-i]:hover td, #logBody tr.sel td{background:var(--copper-soft)}
+#logBody td.ed{color:var(--muted); width:1.4em; text-align:center}
+.card.edit{border-color:var(--copper)}
+.hdr-r{display:flex; flex-direction:column; align-items:flex-end; gap:6px}
+.ver{font:500 12px var(--mono); color:var(--muted)}
+footer{color:var(--muted); font-size:12px; text-align:center}
 .msg{font-size:13px; color:var(--glass); min-height:1em; margin:0}
 .theme{background:none; border:1px solid var(--line); color:var(--muted); border-radius:8px; padding:6px 10px; font:500 13px var(--body); cursor:pointer}
 @media (prefers-reduced-motion: no-preference){ .mk{transition:transform .25s ease} }
@@ -143,7 +150,10 @@ textarea{width:100%; min-height:90px; font:13px/1.4 var(--mono); background:var(
       <h1>Градус на ракията</h1>
       <p class="sub">Разреждане с вода, с отчитане на свиването на обема</p>
     </div>
-    <button class="theme" id="themeBtn" type="button" aria-label="Смени темата">◐</button>
+    <div class="hdr-r">
+      <button class="theme" id="themeBtn" type="button" aria-label="Смени темата">◐</button>
+      <span class="ver" id="ver"></span>
+    </div>
   </header>
 
   <div class="tabs" role="tablist">
@@ -225,12 +235,30 @@ textarea{width:100%; min-height:90px; font:13px/1.4 var(--mono); background:var(
     <section class="card" id="logCard" hidden>
       <h2>Дневник</h2>
       <div class="tbl"><table>
-        <thead><tr><th>Дата</th><th>Вода</th><th>Обем</th><th>Градус</th></tr></thead>
+        <thead><tr><th>Дата</th><th>Вода</th><th>Обем</th><th>Градус</th><th></th></tr></thead>
         <tbody id="logBody"></tbody>
       </table></div>
-      <p class="empty">Под реалната стойност с дребен шрифт е изчислената. Ако не си мерил, остава изчислената.</p>
-      <button class="btn danger" id="undoBtn" type="button">Изтрий последната стъпка</button>
+      <p class="empty">Докосни ред, за да го редактираш. Под реалната стойност с дребен шрифт е изчислената. Ако не си мерил, остава изчислената.</p>
     </section>
+
+    <form class="card edit" id="editCard" onsubmit="return false" hidden>
+      <h2 id="eTitle">Редакция</h2>
+      <div class="field" id="eNameF"><label for="eName">Име на партидата</label><div class="inbox"><input class="txt" id="eName"></div></div>
+      <div class="field" id="eWaterF"><label for="eWater">Налята вода</label><div class="inbox"><input id="eWater" inputmode="decimal"><span class="unit">л</span></div></div>
+      <div class="row2">
+        <div class="field"><label for="eAbv" id="eAbvL">Измерен градус</label><div class="inbox"><input id="eAbv" inputmode="decimal"><span class="unit">°</span></div></div>
+        <div class="field"><label for="eVol" id="eVolL">Измерен обем</label><div class="inbox"><input id="eVol" inputmode="decimal"><span class="unit">л</span></div></div>
+      </div>
+      <div class="field"><label for="eDate">Дата</label><div class="inbox"><input type="date" id="eDate"></div></div>
+      <div class="field" id="eNoteF"><label for="eNote">Бележка <span class="opt">по желание</span></label><div class="inbox"><input class="txt" id="eNote"></div></div>
+      <p class="empty" id="eHint"></p>
+      <p class="msg" id="eMsg"></p>
+      <div class="btns">
+        <button class="btn" id="eSave" type="button">Запази</button>
+        <button class="btn ghost" id="eCancel" type="button">Откажи</button>
+      </div>
+      <button class="btn danger" id="eDel" type="button">Изтрий стъпката</button>
+    </form>
 
     <details>
       <summary>Архив на данните</summary>
@@ -291,10 +319,25 @@ textarea{width:100%; min-height:90px; font:13px/1.4 var(--mono); background:var(
     </ul>
   </details>
   </div>
+
+  <details>
+    <summary>Какво е ново</summary>
+    <ul id="changelog"></ul>
+  </details>
+  <footer id="foot"></footer>
 </div>
 
 <script>
 (function(){
+  const APP_VERSION = '1.2';
+  const CHANGELOG = [
+    ['1.2','28.09.2026','Редакция и изтриване на всяка стъпка и на началото на партидата. Следващите стъпки се преизчисляват. Номер на версия.'],
+    ['1.1','28.09.2026','Таб „Партида“: разреждане на няколко стъпки, план, дневник с реално измерени стойности, архив на данните.'],
+    ['1.0','27.09.2026','Колко вода и какъв градус, с отчитане на свиването на обема.'],
+  ];
+  document.getElementById('ver').textContent = 'v'+APP_VERSION;
+  document.getElementById('foot').textContent = 'Градус на ракията · v'+APP_VERSION+' · '+CHANGELOG[0][1];
+  document.getElementById('changelog').innerHTML = CHANGELOG.map(c=>`<li><b style="font-family:var(--mono)">v${c[0]}</b> · ${c[1]}: ${c[2]}</li>`).join('');
   // Плътност на спирт-вода при 20 °C (g/cm³) по масов процент спирт, стъпка 5%
   const W = [0,5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100].map(x=>x/100);
   const RHO = [.99823,.98938,.98187,.97514,.96864,.96168,.95382,.94494,.93518,.92472,.91384,.90258,.89113,.87948,.86766,.85564,.84344,.83095,.81797,.80424,.78934];
@@ -382,7 +425,9 @@ textarea{width:100%; min-height:90px; font:13px/1.4 var(--mono); background:var(
     sel.innerHTML = db.batches.length ? db.batches.map(b=>`<option value="${b.id}">${esc(b.name)}</option>`).join('') : '<option value="">Още няма партиди</option>';
     if(db.cur) sel.value=db.cur;
     const b=curB();
+    if(b) recalc(b);
     const creating = showNew || !b;
+    if(creating || !b){ editIdx=null; $('editCard').hidden=true; }
     $('newCard').hidden = !creating;
     $('pickCard').hidden = !db.batches.length;
     $('bDelBtn').hidden = !b;
@@ -410,16 +455,15 @@ textarea{width:100%; min-height:90px; font:13px/1.4 var(--mono); background:var(
     updateStep(b);
 
     // дневник
-    let h=`<tr class="start"><td>${fDate(b.start.date)}</td><td>начало</td><td>${fmt(b.start.vol,2)}</td><td>${fmt(b.start.abv,1)}°</td></tr>`;
-    let prevA=b.start.abv;
-    b.steps.forEach(s=>{
+    const selC = i => editIdx===i ? ' sel' : '';
+    let h=`<tr class="start${selC(-1)}" data-i="-1"><td>${fDate(b.start.date)}</td><td>начало</td><td>${fmt(b.start.vol,2)}</td><td>${fmt(b.start.abv,1)}°</td><td class="ed">✎</td></tr>`;
+    b.steps.forEach((s,i)=>{
       const vReal=s.vol!=null, aReal=s.abv!=null;
-      h+=`<tr><td>${fDate(s.date)}${s.note?`<span class="p" style="font-family:var(--body)">${esc(s.note)}</span>`:''}</td><td>${fmt(s.water,2)}</td>`+
+      h+=`<tr class="${selC(i)}" data-i="${i}"><td>${fDate(s.date)}${s.note?`<span class="p" style="font-family:var(--body)">${esc(s.note)}</span>`:''}</td><td>${fmt(s.water,2)}</td>`+
          `<td>${fmt(vReal?s.vol:s.predVol,2)}${vReal?`<span class="p">${fmt(s.predVol,2)}</span>`:'<span class="p">изчисл.</span>'}</td>`+
-         `<td>${fmt(aReal?s.abv:s.predAbv,1)}°${aReal?`<span class="p">${fmt(s.predAbv,1)}°</span>`:'<span class="p">изчисл.</span>'}</td></tr>`;
+         `<td>${fmt(aReal?s.abv:s.predAbv,1)}°${aReal?`<span class="p">${fmt(s.predAbv,1)}°</span>`:'<span class="p">изчисл.</span>'}</td><td class="ed">✎</td></tr>`;
     });
     $('logBody').innerHTML=h;
-    $('undoBtn').hidden = !b.steps.length;
   }
 
   function updateStep(b){
@@ -448,7 +492,7 @@ textarea{width:100%; min-height:90px; font:13px/1.4 var(--mono); background:var(
   }
   const resetStep = () => { waterDirty=false; goalDirty=false; ['sGoal','sWater','sMAbv','sMVol','sNote'].forEach(id=>$(id).value=''); $('sDate').value=today(); };
 
-  $('bSel').addEventListener('change',e=>{ db.cur=e.target.value; showNew=false; resetStep(); dbSave(); renderBatch(); });
+  $('bSel').addEventListener('change',e=>{ db.cur=e.target.value; showNew=false; editIdx=null; $('editCard').hidden=true; resetStep(); dbSave(); renderBatch(); });
   $('bNewBtn').addEventListener('click',()=>{ showNew=true; $('nMsg').textContent=''; renderBatch(); $('nName').focus(); });
   $('nCancel').addEventListener('click',()=>{ showNew=false; renderBatch(); });
   $('bDelBtn').addEventListener('click',e=>arm(e.currentTarget,'Натисни пак за изтриване',()=>{
@@ -481,9 +525,59 @@ textarea{width:100%; min-height:90px; font:13px/1.4 var(--mono); background:var(
     dbSave(); resetStep(); $('sMsg').textContent='Стъпката е записана.'; setTimeout(()=>$('sMsg').textContent='',2500);
     renderBatch();
   });
-  $('undoBtn').addEventListener('click',e=>arm(e.currentTarget,'Натисни пак за изтриване',()=>{
-    const b=curB(); if(!b||!b.steps.length) return; b.steps.pop(); b.stepsLeft++; dbSave(); resetStep(); renderBatch();
+  // ---------- редакция ----------
+  let editIdx=null; // -1 = началото, 0.. = стъпка
+  const toIn = (x,d) => x==null ? '' : String(+x.toFixed(d)).replace('.',',');
+  function openEdit(i){
+    const b=curB(); if(!b) return;
+    editIdx=i; const isStart=i<0, s=isStart?null:b.steps[i];
+    $('eTitle').textContent = isStart ? 'Редакция на началото' : `Редакция на стъпка ${i+1}`;
+    $('eNameF').hidden=!isStart; $('eWaterF').hidden=isStart; $('eNoteF').hidden=isStart; $('eDel').hidden=isStart;
+    $('eAbvL').innerHTML = isStart ? 'Начален градус' : 'Измерен градус <span class="opt">по желание</span>';
+    $('eVolL').innerHTML = isStart ? 'Начален обем' : 'Измерен обем <span class="opt">по желание</span>';
+    if(isStart){
+      $('eName').value=b.name; $('eAbv').value=toIn(b.start.abv,1); $('eVol').value=toIn(b.start.vol,2); $('eDate').value=b.start.date;
+      $('eAbv').placeholder=''; $('eVol').placeholder='';
+      $('eHint').textContent='Промяната тук преизчислява всички стъпки след нея.';
+    } else {
+      $('eWater').value=toIn(s.water,2); $('eAbv').value=toIn(s.abv,1); $('eVol').value=toIn(s.vol,2);
+      $('eAbv').placeholder=toIn(s.predAbv,1); $('eVol').placeholder=toIn(s.predVol,2);
+      $('eDate').value=s.date; $('eNote').value=s.note||'';
+      $('eHint').textContent='Празно поле означава, че не си мерил и се ползва изчислената стойност. Следващите стъпки се преизчисляват.';
+    }
+    $('eMsg').textContent=''; $('eDel').classList.remove('armed'); $('eDel').textContent='Изтрий стъпката';
+    $('editCard').hidden=false; renderBatch();
+    $('editCard').scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth', block:'start'});
+  }
+  function closeEdit(){ editIdx=null; $('editCard').hidden=true; renderBatch(); }
+  $('logBody').addEventListener('click',e=>{ const tr=e.target.closest('tr[data-i]'); if(tr) openEdit(+tr.dataset.i); });
+  $('eCancel').addEventListener('click',closeEdit);
+  $('eSave').addEventListener('click',()=>{
+    const b=curB(); if(!b||editIdx==null) return;
+    const A=num($('eAbv')), V=num($('eVol'));
+    if(editIdx<0){
+      if(!(V>0)) return $('eMsg').textContent='Въведи началния обем.';
+      if(!(A>0&&A<=100)) return $('eMsg').textContent='Началният градус трябва да е между 0 и 100.';
+      b.name=$('eName').value.trim()||b.name; b.start={date:$('eDate').value||b.start.date, vol:V, abv:A};
+    } else {
+      const s=b.steps[editIdx], Wv=num($('eWater'));
+      if(!(Wv>=0)) return $('eMsg').textContent='Въведи колко вода си налял.';
+      if($('eAbv').value && !(A>0&&A<=100)) return $('eMsg').textContent='Измереният градус трябва да е между 0 и 100.';
+      if($('eVol').value && !(V>0)) return $('eMsg').textContent='Измереният обем трябва да е над 0.';
+      Object.assign(s,{ water:Wv, abv:A>0?A:null, vol:V>0?V:null, date:$('eDate').value||s.date, note:$('eNote').value.trim()||null });
+    }
+    recalc(b); dbSave(); resetStep(); closeEdit();
+  });
+  $('eDel').addEventListener('click',e=>arm(e.currentTarget,'Натисни пак за изтриване',()=>{
+    const b=curB(); if(!b||editIdx==null||editIdx<0) return;
+    b.steps.splice(editIdx,1); b.stepsLeft++; recalc(b); dbSave(); resetStep(); closeEdit();
   }));
+
+  // преизчислява очакваното за всяка стъпка от реалното преди нея
+  function recalc(b){
+    let V=b.start.vol, A=b.start.abv;
+    for(const s of b.steps){ const r=abvAfter(V,A,s.water); s.predVol=r.vol; s.predAbv=r.abv; V=s.vol??r.vol; A=s.abv??r.abv; }
+  }
   $('expBtn').addEventListener('click',()=>{
     const t=JSON.stringify(db); $('io').value=t;
     const done=()=>{$('ioMsg').textContent='Копирано. Постави го в Бележки или другаде.';};
