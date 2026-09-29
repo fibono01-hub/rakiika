@@ -132,6 +132,8 @@ textarea{width:100%; min-height:90px; font:13px/1.4 var(--mono); background:var(
 #logBody tr[data-i]{cursor:pointer}
 #logBody tr[data-i]:hover td, #logBody tr.sel td, #tTbl tr.sel td{background:var(--copper-soft)}
 .btn:disabled{opacity:.45; cursor:default}
+.xfer{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px}
+.xfer .btn{padding:12px 6px; font-size:14px}
 #logBody td.ed{color:var(--muted); width:1.4em; text-align:center}
 .card.edit{border-color:var(--copper)}
 .hdr-r{display:flex; flex-direction:column; align-items:flex-end; gap:6px}
@@ -177,9 +179,13 @@ footer{color:var(--muted); font-size:12px; text-align:center}
       </div>
       <dl class="rows" id="tRows"></dl>
       <div class="note" id="tNote" hidden></div>
-      <div class="btns">
-        <button class="btn ghost" id="tToWater" type="button">Пренеси в „Колко вода?“</button>
-        <button class="btn ghost" id="tToBatch" type="button">Пренеси в партидата</button>
+      <div class="field">
+        <span class="k" style="font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.3px">Пренеси реалния градус в</span>
+        <div class="xfer">
+          <button class="btn ghost" id="tToWater" type="button">Колко вода?</button>
+          <button class="btn ghost" id="tToAbv" type="button">Какъв градус?</button>
+          <button class="btn ghost" id="tToBatch" type="button">Партида</button>
+        </div>
       </div>
     </section>
     <section class="card">
@@ -188,7 +194,7 @@ footer{color:var(--muted); font-size:12px; text-align:center}
         <thead><tr><th>Температура</th><th>Реален градус</th><th>Поправка</th></tr></thead>
         <tbody id="tTbl"></tbody>
       </table></div>
-      <p class="empty">Спиртомерът е еталониран при 20 °C. Топлата ракия е по-лека и спиртомерът потъва повече, затова показва повече от истинското. Студената показва по-малко. Сметката е по международните алкохолометрични таблици (OIML) за стъклен спиртомер.</p>
+      <p class="empty">Спиртомерът е еталониран при 20 °C. Топлата ракия е по-лека и спиртомерът потъва повече, затова показва повече от истинското. Студената показва по-малко. Сметката е по международните алкохолометрични таблици (OIML) за стъклен спиртомер. Относителното тегло 20/20 °C е плътността на ракията, разделена на плътността на чиста вода при 20 °C (998,2 kg/m³).</p>
     </section>
   </div>
 
@@ -359,8 +365,10 @@ footer{color:var(--muted); font-size:12px; text-align:center}
 
 <script>
 (function(){
-  const APP_VERSION = '1.3';
+  const APP_VERSION = '1.3.2';
   const CHANGELOG = [
+    ['1.3.2','29.09.2026','Реалният градус от таб „Температура“ се пренася с отделни бутони в „Колко вода?“, „Какъв градус?“ и „Партида“. Без отворена партида отива като начален градус на нова.'],
+    ['1.3.1','29.09.2026','В таб „Температура“: плътност при 20 °C и при температурата на мерене, относително тегло и процент алкохол по маса.'],
     ['1.3','29.09.2026','Таб „Температура“: поправка на показанието на спиртомера според температурата. Всички сметки вече са по официалните формули на OIML.'],
     ['1.2.1','28.09.2026','Надписите на бутоните „Нова партида“ и „Изтрий партидата“ вече се виждат на нощната тема.'],
     ['1.2','28.09.2026','Редакция и изтриване на всяка стъпка и на началото на партидата. Следващите стъпки се преизчисляват. Номер на версия.'],
@@ -697,15 +705,21 @@ footer{color:var(--muted); font-size:12px; text-align:center}
   const sgn = d => Math.abs(d)<0.05 ? '0,0°' : (d>0?'+':'−')+fmt(Math.abs(d),1)+'°';
   function calcTemp(){
     const R=num($('tR')), T=num($('tT'));
-    tLast=null; $('tToWater').disabled=true; $('tToBatch').hidden=!curB();
+    tLast=null; ['tToWater','tToAbv','tToBatch'].forEach(id=>$(id).disabled=true);
     const bad = msg => { $('tBig').textContent='—'; $('tRows').innerHTML=''; $('tNote').hidden=false; $('tNote').textContent=msg; $('tTbl').innerHTML=''; };
     if(!(R>0&&R<100)) return bad('Въведи показанието на спиртомера, между 0 и 100.');
     if(!isFinite(T)) return bad('Въведи температурата на ракията в °C.');
     if(T<-20||T>40) return bad('Формулите важат от −20 до 40 °C.');
     const q=trueAbv(R,T), d=q-R;
-    tLast=q; $('tToWater').disabled=false;
+    tLast=q; ['tToWater','tToAbv','tToBatch'].forEach(id=>$(id).disabled=false);
     $('tBig').innerHTML = fmt(q,1)+'<small>°</small>';
-    $('tRows').innerHTML = `<dt>Поправка</dt><dd>${sgn(d)}</dd><dt>Ракията е</dt><dd>${Math.abs(T-20)<0.5?'на 20 °C':T>20?'по-топла от 20 °C':'по-студена от 20 °C'}</dd>`;
+    const pm=wOfAbv(q/100), r20=rhoPT(pm,20), rT=rhoPT(pm,T), sg=r20/rhoPT(0,20);
+    const fT = fmt(T,Number.isInteger(T)?0:1);
+    $('tRows').innerHTML = `<dt>Поправка</dt><dd>${sgn(d)}</dd>`+
+      `<dt>Плътност при 20 °C</dt><dd>${fmt(r20,1)} kg/m³</dd>`+
+      (Math.abs(T-20)<0.05?'':`<dt>Плътност при ${fT} °C</dt><dd>${fmt(rT,1)} kg/m³</dd>`)+
+      `<dt>Отн. тегло 20/20&nbsp;°C</dt><dd>${fmt(sg,4)}</dd>`+
+      `<dt>Алкохол по маса</dt><dd>${fmt(pm*100,1)} %</dd>`;
     $('tNote').hidden = Math.abs(T-20)<=10;
     $('tNote').innerHTML = '<b>Голяма разлика от 20 °C.</b> Поправката е вярна, но за по-точно мерене остави ракията да се темперира до стайна температура.';
     $('tTblH').textContent = `Показание ${fmt(R,1)}° при други температури`;
@@ -715,7 +729,13 @@ footer{color:var(--muted); font-size:12px; text-align:center}
   }
   ['tR','tT'].forEach(id=>$(id).addEventListener('input',()=>{calcTemp();save();}));
   $('tToWater').addEventListener('click',()=>{ if(tLast==null) return; $('a1').value=fmt(tLast,1).replace(/\s/g,''); setMode('water'); });
-  $('tToBatch').addEventListener('click',()=>{ if(tLast==null||!curB()) return; setMode('batch'); $('sMAbv').value=fmt(tLast,1).replace(/\s/g,''); $('stepCard').scrollIntoView({block:'start'}); });
+  $('tToAbv').addEventListener('click',()=>{ if(tLast==null) return; $('a1').value=fmt(tLast,1).replace(/\s/g,''); setMode('abv'); });
+  $('tToBatch').addEventListener('click',()=>{
+    if(tLast==null) return; const v=fmt(tLast,1).replace(/\s/g,'');
+    setMode('batch');
+    if(curB() && !showNew){ $('sMAbv').value=v; $('stepCard').scrollIntoView({block:'start'}); $('sMAbv').focus({preventScroll:true}); }
+    else { showNew=true; renderBatch(); $('nAbv').value=v; $('newCard').scrollIntoView({block:'start'}); }
+  });
 
   // тема: авто → тъмна → светла
   const root=document.documentElement;
