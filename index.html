@@ -58,7 +58,7 @@ header{display:flex; align-items:baseline; justify-content:space-between; gap:12
 h1{font:400 28px/1.1 var(--display); margin:0; letter-spacing:.2px; text-wrap:balance}
 .sub{margin:4px 0 0; color:var(--muted); font-size:14px}
 
-.tabs{display:grid; grid-template-columns:repeat(3,1fr); gap:4px; padding:4px; background:var(--panel); border:1px solid var(--line); border-radius:12px}
+.tabs{display:grid; grid-template-columns:repeat(4,1fr); gap:4px; padding:4px; background:var(--panel); border:1px solid var(--line); border-radius:12px}
 .tabs button{
   font:600 15px/1.2 var(--body); color:var(--muted); background:transparent;
   border:0; border-radius:9px; padding:11px 8px; cursor:pointer;
@@ -104,6 +104,7 @@ details ul{padding-left:18px; margin:8px 0}
 .row2 > *, .inbox{min-width:0}
 .inbox input{width:100%}
 .tabs button{font-size:14px; padding-inline:4px}
+@media (max-width:440px){ .tabs{grid-template-columns:repeat(2,1fr)} }
 .inbox select, .inbox input[type="date"], .inbox input.txt{font:500 17px/1.2 var(--body); padding:12px 0; -webkit-appearance:none; appearance:none; border:0; background:transparent; color:var(--ink); flex:1; min-width:0}
 .inbox select:focus{outline:none}
 .opt{font-size:12px; color:var(--muted); font-weight:400; text-transform:none; letter-spacing:0}
@@ -129,7 +130,8 @@ h2{font:600 13px/1.2 var(--body); text-transform:uppercase; letter-spacing:.4px;
 .empty{color:var(--muted); font-size:14px; margin:0}
 textarea{width:100%; min-height:90px; font:13px/1.4 var(--mono); background:var(--field); color:var(--ink); border:1px solid var(--line); border-radius:10px; padding:10px}
 #logBody tr[data-i]{cursor:pointer}
-#logBody tr[data-i]:hover td, #logBody tr.sel td{background:var(--copper-soft)}
+#logBody tr[data-i]:hover td, #logBody tr.sel td, #tTbl tr.sel td{background:var(--copper-soft)}
+.btn:disabled{opacity:.45; cursor:default}
 #logBody td.ed{color:var(--muted); width:1.4em; text-align:center}
 .card.edit{border-color:var(--copper)}
 .hdr-r{display:flex; flex-direction:column; align-items:flex-end; gap:6px}
@@ -157,6 +159,37 @@ footer{color:var(--muted); font-size:12px; text-align:center}
     <button role="tab" id="tab-water" aria-selected="true" type="button">Колко вода?</button>
     <button role="tab" id="tab-abv" aria-selected="false" type="button">Какъв градус?</button>
     <button role="tab" id="tab-batch" aria-selected="false" type="button">Партида</button>
+    <button role="tab" id="tab-temp" aria-selected="false" type="button">Температура</button>
+  </div>
+
+  <!-- ТЕМПЕРАТУРА -->
+  <div id="tempView" class="wrap" style="padding:0" hidden>
+    <form class="card" onsubmit="return false" autocomplete="off">
+      <div class="row2">
+        <div class="field"><label for="tR">Показание</label><div class="inbox"><input id="tR" inputmode="decimal" value="45"><span class="unit">°</span></div></div>
+        <div class="field"><label for="tT">Температура</label><div class="inbox"><input id="tT" inputmode="decimal" value="27"><span class="unit">°C</span></div></div>
+      </div>
+    </form>
+    <section class="card result" aria-live="polite">
+      <div class="big">
+        <span class="k">Реален градус при 20 °C</span>
+        <span class="v" id="tBig">—</span>
+      </div>
+      <dl class="rows" id="tRows"></dl>
+      <div class="note" id="tNote" hidden></div>
+      <div class="btns">
+        <button class="btn ghost" id="tToWater" type="button">Пренеси в „Колко вода?“</button>
+        <button class="btn ghost" id="tToBatch" type="button">Пренеси в партидата</button>
+      </div>
+    </section>
+    <section class="card">
+      <h2 id="tTblH">Същото показание при други температури</h2>
+      <div class="tbl"><table>
+        <thead><tr><th>Температура</th><th>Реален градус</th><th>Поправка</th></tr></thead>
+        <tbody id="tTbl"></tbody>
+      </table></div>
+      <p class="empty">Спиртомерът е еталониран при 20 °C. Топлата ракия е по-лека и спиртомерът потъва повече, затова показва повече от истинското. Студената показва по-малко. Сметката е по международните алкохолометрични таблици (OIML) за стъклен спиртомер.</p>
+    </section>
   </div>
 
   <!-- ПАРТИДА -->
@@ -309,9 +342,9 @@ footer{color:var(--muted); font-size:12px; text-align:center}
   <details>
     <summary>Как смята</summary>
     <ul>
-      <li>Алкохолът и водата не се събират просто по обем: 1 л + 1 л дава малко под 2 л. Затова смятам по маса, с таблица за плътността на спирт-вода при 20 °C.</li>
+      <li>Алкохолът и водата не се събират просто по обем: 1 л + 1 л дава малко под 2 л. Затова смятам по маса, с официалните формули за плътност на спирт-вода (международните алкохолометрични таблици на OIML).</li>
       <li>Количеството чист алкохол не се променя, затова крайният обем винаги е <i>количество × сегашен ÷ нов градус</i>. Водата, която трябва да налееш, е повече от разликата, защото сместа се свива.</li>
-      <li>Мери градуса със спиртомера при около 20 °C. При топла ракия спиртомерът показва повече, при студена — по-малко.</li>
+      <li>Мери градуса със спиртомера при около 20 °C. При топла ракия спиртомерът показва повече, при студена — по-малко. Поправката е в таб „Температура“.</li>
       <li>Наливай водата на части, разбъркай, остави да престои и премери пак.</li>
     </ul>
   </details>
@@ -326,8 +359,9 @@ footer{color:var(--muted); font-size:12px; text-align:center}
 
 <script>
 (function(){
-  const APP_VERSION = '1.2.1';
+  const APP_VERSION = '1.3';
   const CHANGELOG = [
+    ['1.3','29.09.2026','Таб „Температура“: поправка на показанието на спиртомера според температурата. Всички сметки вече са по официалните формули на OIML.'],
     ['1.2.1','28.09.2026','Надписите на бутоните „Нова партида“ и „Изтрий партидата“ вече се виждат на нощната тема.'],
     ['1.2','28.09.2026','Редакция и изтриване на всяка стъпка и на началото на партидата. Следващите стъпки се преизчисляват. Номер на версия.'],
     ['1.1','28.09.2026','Таб „Партида“: разреждане на няколко стъпки, план, дневник с реално измерени стойности, архив на данните.'],
@@ -336,29 +370,35 @@ footer{color:var(--muted); font-size:12px; text-align:center}
   document.getElementById('ver').textContent = 'v'+APP_VERSION;
   document.getElementById('foot').textContent = 'Градус на ракията · v'+APP_VERSION+' · '+CHANGELOG[0][1];
   document.getElementById('changelog').innerHTML = CHANGELOG.map(c=>`<li><b style="font-family:var(--mono)">v${c[0]}</b> · ${c[1]}: ${c[2]}</li>`).join('');
-  // Плътност на спирт-вода при 20 °C (g/cm³) по масов процент спирт, стъпка 5%
-  const W = [0,5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100].map(x=>x/100);
-  const RHO = [.99823,.98938,.98187,.97514,.96864,.96168,.95382,.94494,.93518,.92472,.91384,.90258,.89113,.87948,.86766,.85564,.84344,.83095,.81797,.80424,.78934];
-  const RHO_E = 0.78934, RHO_W = 0.99823;
-  const ABV = W.map((w,i)=> w*RHO[i]/RHO_E); // обемна част
-
-  // Монотонна кубична интерполация (Fritsch–Carlson)
-  function pchip(xs, ys){
-    const n=xs.length, h=[], d=[], m=new Array(n);
-    for(let i=0;i<n-1;i++){ h[i]=xs[i+1]-xs[i]; d[i]=(ys[i+1]-ys[i])/h[i]; }
-    m[0]=d[0]; m[n-1]=d[n-2];
-    for(let i=1;i<n-1;i++){
-      if(d[i-1]*d[i]<=0) m[i]=0;
-      else { const w1=2*h[i]+h[i-1], w2=h[i]+2*h[i-1]; m[i]=(w1+w2)/(w1/d[i-1]+w2/d[i]); }
-    }
-    return function(x){
-      if(x<=xs[0]) return ys[0]; if(x>=xs[n-1]) return ys[n-1];
-      let i=0; while(x>xs[i+1]) i++;
-      const t=(x-xs[i])/h[i], t2=t*t, t3=t2*t;
-      return (2*t3-3*t2+1)*ys[i] + (t3-2*t2+t)*h[i]*m[i] + (-2*t3+3*t2)*ys[i+1] + (t3-t2)*h[i]*m[i+1];
-    };
+  // Плътност на спирт-вода по OIML R 22 (международни алкохолометрични таблици)
+  // p = масова част спирт (0..1), t = °C; връща kg/m³
+  const OA=[9.982012300E2,-1.929769495E2,3.891238958E2,-1.668103923E3,1.352215441E4,-8.829278388E4,3.062874042E5,-6.138381234E5,7.470172998E5,-5.478461354E5,2.234460334E5,-3.903285426E4];
+  const OB=[-2.0618513E-1,-5.2682542E-3,3.6130013E-5,-3.8957702E-7,7.1693540E-9,-9.9739231E-11];
+  const OC=[
+    [1.693443461530087E-1,-1.046914743455169E1,7.196353469546523E1,-7.047478054272792E2,3.924090430035045E3,-1.210164659068747E4,2.248646550400788E4,-2.605562982188164E4,1.852373922069467E4,-7.420201433430137E3,1.285617841998974E3],
+    [-1.193013005057010E-2,2.517399633803461E-1,-2.170575700536993,1.353034988843029E1,-5.029988758547014E1,1.096355666577570E2,-1.422753946421155E2,1.080435942856230E2,-4.414153236817392E1,7.442971530188783],
+    [-6.802995733503803E-4,1.876837790289664E-2,-2.002561813734156E-1,1.022992966719220,-2.895696483903638,4.810060584300675,-4.672147440794683,2.458043105903461,-5.411227621436812E-1],
+    [4.075376675622027E-6,-8.763058573471110E-6,6.515031360099368E-6,-1.515784836987210E-6],
+    [-2.788074354782409E-8,1.345612883493354E-8]];
+  function rhoPT(p,t){
+    const dt=t-20; let r=0;
+    for(let k=0;k<OA.length;k++) r+=OA[k]*Math.pow(p,k);
+    for(let k=0;k<OB.length;k++) r+=OB[k]*Math.pow(dt,k+1);
+    for(let i=0;i<OC.length;i++) for(let k=0;k<OC[i].length;k++) r+=OC[i][k]*Math.pow(p,k+1)*Math.pow(dt,i+1);
+    return r;
   }
-  const rhoOfW = pchip(W,RHO), wOfAbv = pchip(ABV,W), abvOfW = pchip(W,ABV);
+  const RHO20_E = rhoPT(1,20)/1000, RHO_W = rhoPT(0,20)/1000;
+  const rhoOfW = w => rhoPT(w,20)/1000;               // g/cm³ при 20 °C
+  const abvOfW = w => w*rhoPT(w,20)/rhoPT(1,20);       // обемна част от масова
+  function solve(f, target, inc){ let lo=0, hi=1; for(let i=0;i<60;i++){ const mid=(lo+hi)/2, v=f(mid); if((v<target)===inc) lo=mid; else hi=mid; } return (lo+hi)/2; }
+  const wOfAbv = q => q<=0?0: q>=1?1: solve(abvOfW, q, true);
+  // Показание на спиртомер (стъклен, еталониран при 20 °C) при температура t → реален градус при 20 °C
+  function trueAbv(reading, t){
+    const rho20p = rhoPT(wOfAbv(reading/100),20);
+    const rhoT = rho20p*(1-25e-6*(t-20));
+    const p = solve(x=>rhoPT(x,t), rhoT, false);
+    return abvOfW(p)*100;
+  }
 
   const $ = id=>document.getElementById(id);
   const num = el => { const v=parseFloat(String(el.value).replace(',','.').replace(/\s/g,'')); return isFinite(v)?v:NaN; };
@@ -366,19 +406,21 @@ footer{color:var(--muted); font-size:12px; text-align:center}
   const fmtL = x => x<1 ? fmt(x*1000,0)+' мл' : fmt(x,2)+' л';
 
   let mode='water';
-  function load(){ try{ const s=JSON.parse(localStorage.getItem('rakia')||'null'); if(s){ ['vol','a1','a2','w'].forEach(k=>{ if(s[k]!=null) $(k).value=s[k]; }); if(s.mode) mode=s.mode; } }catch(e){} }
-  function save(){ try{ localStorage.setItem('rakia', JSON.stringify({vol:$('vol').value,a1:$('a1').value,a2:$('a2').value,w:$('w').value,mode})); }catch(e){} }
+  function load(){ try{ const s=JSON.parse(localStorage.getItem('rakia')||'null'); if(s){ ['vol','a1','a2','w','tR','tT'].forEach(k=>{ if(s[k]!=null) $(k).value=s[k]; }); if(s.mode) mode=s.mode; } }catch(e){} }
+  function save(){ try{ localStorage.setItem('rakia', JSON.stringify({vol:$('vol').value,a1:$('a1').value,a2:$('a2').value,w:$('w').value,tR:$('tR').value,tT:$('tT').value,mode})); }catch(e){} }
 
   function setMode(m){
     mode=m;
     $('tab-water').setAttribute('aria-selected', m==='water');
     $('tab-abv').setAttribute('aria-selected', m==='abv');
     $('tab-batch').setAttribute('aria-selected', m==='batch');
-    $('calcView').hidden = m==='batch';
+    $('tab-temp').setAttribute('aria-selected', m==='temp');
+    $('calcView').hidden = m==='batch' || m==='temp';
     $('batchView').hidden = m!=='batch';
+    $('tempView').hidden = m!=='temp';
     $('f-target').hidden = m!=='water';
     $('f-water').hidden = m!=='abv';
-    if(m==='batch') renderBatch(); else calc();
+    if(m==='batch') renderBatch(); else if(m==='temp') calcTemp(); else calc();
     save();
   }
 
@@ -648,6 +690,32 @@ footer{color:var(--muted); font-size:12px; text-align:center}
   $('tab-water').addEventListener('click',()=>setMode('water'));
   $('tab-abv').addEventListener('click',()=>setMode('abv'));
   $('tab-batch').addEventListener('click',()=>setMode('batch'));
+  $('tab-temp').addEventListener('click',()=>setMode('temp'));
+
+  // ---------- температура ----------
+  let tLast=null;
+  const sgn = d => Math.abs(d)<0.05 ? '0,0°' : (d>0?'+':'−')+fmt(Math.abs(d),1)+'°';
+  function calcTemp(){
+    const R=num($('tR')), T=num($('tT'));
+    tLast=null; $('tToWater').disabled=true; $('tToBatch').hidden=!curB();
+    const bad = msg => { $('tBig').textContent='—'; $('tRows').innerHTML=''; $('tNote').hidden=false; $('tNote').textContent=msg; $('tTbl').innerHTML=''; };
+    if(!(R>0&&R<100)) return bad('Въведи показанието на спиртомера, между 0 и 100.');
+    if(!isFinite(T)) return bad('Въведи температурата на ракията в °C.');
+    if(T<-20||T>40) return bad('Формулите важат от −20 до 40 °C.');
+    const q=trueAbv(R,T), d=q-R;
+    tLast=q; $('tToWater').disabled=false;
+    $('tBig').innerHTML = fmt(q,1)+'<small>°</small>';
+    $('tRows').innerHTML = `<dt>Поправка</dt><dd>${sgn(d)}</dd><dt>Ракията е</dt><dd>${Math.abs(T-20)<0.5?'на 20 °C':T>20?'по-топла от 20 °C':'по-студена от 20 °C'}</dd>`;
+    $('tNote').hidden = Math.abs(T-20)<=10;
+    $('tNote').innerHTML = '<b>Голяма разлика от 20 °C.</b> Поправката е вярна, но за по-точно мерене остави ракията да се темперира до стайна температура.';
+    $('tTblH').textContent = `Показание ${fmt(R,1)}° при други температури`;
+    let h='';
+    for(let t=0;t<=35;t+=5){ const v=trueAbv(R,t), dd=v-R; h+=`<tr${Math.round(T)===t?' class="sel"':''}><td>${t} °C</td><td>${fmt(v,1)}°</td><td>${sgn(dd)}</td></tr>`; }
+    $('tTbl').innerHTML=h;
+  }
+  ['tR','tT'].forEach(id=>$(id).addEventListener('input',()=>{calcTemp();save();}));
+  $('tToWater').addEventListener('click',()=>{ if(tLast==null) return; $('a1').value=fmt(tLast,1).replace(/\s/g,''); setMode('water'); });
+  $('tToBatch').addEventListener('click',()=>{ if(tLast==null||!curB()) return; setMode('batch'); $('sMAbv').value=fmt(tLast,1).replace(/\s/g,''); $('stepCard').scrollIntoView({block:'start'}); });
 
   // тема: авто → тъмна → светла
   const root=document.documentElement;
