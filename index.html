@@ -58,7 +58,7 @@ header{display:flex; align-items:baseline; justify-content:space-between; gap:12
 h1{font:400 28px/1.1 var(--display); margin:0; letter-spacing:.2px; text-wrap:balance}
 .sub{margin:4px 0 0; color:var(--muted); font-size:14px}
 
-.tabs{display:grid; grid-template-columns:repeat(4,1fr); gap:4px; padding:4px; background:var(--panel); border:1px solid var(--line); border-radius:12px}
+.tabs{display:grid; grid-template-columns:repeat(3,1fr); gap:4px; padding:4px; background:var(--panel); border:1px solid var(--line); border-radius:12px}
 .tabs button{
   font:600 15px/1.2 var(--body); color:var(--muted); background:transparent;
   border:0; border-radius:9px; padding:11px 8px; cursor:pointer;
@@ -104,7 +104,7 @@ details ul{padding-left:18px; margin:8px 0}
 .row2 > *, .inbox{min-width:0}
 .inbox input{width:100%}
 .tabs button{font-size:14px; padding-inline:4px}
-@media (max-width:440px){ .tabs{grid-template-columns:repeat(2,1fr)} }
+
 .inbox select, .inbox input[type="date"], .inbox input.txt{font:500 17px/1.2 var(--body); padding:12px 0; -webkit-appearance:none; appearance:none; border:0; background:transparent; color:var(--ink); flex:1; min-width:0}
 .inbox select:focus{outline:none}
 .opt{font-size:12px; color:var(--muted); font-weight:400; text-transform:none; letter-spacing:0}
@@ -132,7 +132,8 @@ textarea{width:100%; min-height:90px; font:13px/1.4 var(--mono); background:var(
 #logBody tr[data-i]{cursor:pointer}
 #logBody tr[data-i]:hover td, #logBody tr.sel td, #tTbl tr.sel td{background:var(--copper-soft)}
 .btn:disabled{opacity:.45; cursor:default}
-.xfer{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px}
+.xfer{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px}
+.xk{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.3px}
 .xfer .btn{padding:12px 6px; font-size:14px}
 #logBody td.ed{color:var(--muted); width:1.4em; text-align:center}
 .card.edit{border-color:var(--copper)}
@@ -162,6 +163,71 @@ footer{color:var(--muted); font-size:12px; text-align:center}
     <button role="tab" id="tab-abv" aria-selected="false" type="button">Какъв градус?</button>
     <button role="tab" id="tab-batch" aria-selected="false" type="button">Партида</button>
     <button role="tab" id="tab-temp" aria-selected="false" type="button">Температура</button>
+    <button role="tab" id="tab-dens" aria-selected="false" type="button">Ареометър</button>
+    <button role="tab" id="tab-heads" aria-selected="false" type="button">Първак</button>
+  </div>
+
+  <!-- АРЕОМЕТЪР -->
+  <div id="densView" class="wrap" style="padding:0" hidden>
+    <form class="card" onsubmit="return false" autocomplete="off">
+      <div class="field">
+        <label for="dU">Ареометърът показва</label>
+        <div class="inbox"><select id="dU">
+          <option value="rho">Плътност (g/cm³ или kg/m³)</option>
+          <option value="sg">Относително тегло 20/20 °C</option>
+        </select><span class="unit">▾</span></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label for="dR">Показание</label><div class="inbox"><input id="dR" inputmode="decimal" value="0,946"><span class="unit" id="dRU"></span></div></div>
+        <div class="field"><label for="dT">Температура</label><div class="inbox"><input id="dT" inputmode="decimal" value="20"><span class="unit">°C</span></div></div>
+      </div>
+    </form>
+    <section class="card result" aria-live="polite">
+      <div class="big">
+        <span class="k">Алкохолен градус при 20 °C</span>
+        <span class="v" id="dBig">—</span>
+      </div>
+      <dl class="rows" id="dRows"></dl>
+      <div class="note" id="dNote" hidden></div>
+      <div class="field">
+        <span class="xk">Пренеси градуса в</span>
+        <div class="xfer">
+          <button class="btn ghost" data-x="water" data-src="d" type="button">Колко вода?</button>
+          <button class="btn ghost" data-x="abv" data-src="d" type="button">Какъв градус?</button>
+          <button class="btn ghost" data-x="batch" data-src="d" type="button">Партида</button>
+          <button class="btn ghost" data-x="heads" data-src="d" type="button">Първак</button>
+        </div>
+      </div>
+    </section>
+    <section class="card">
+      <p class="empty">Ареометърът е еталониран при 20 °C. Ако мериш при друга температура, въведи я и сметката поправя и плътността на течността, и разширението на стъклото (OIML, стъклен ареометър). Важи само за чист спирт с вода. Ако в течността има захар, плодове или мая, ареометърът не показва градуса вярно.</p>
+    </section>
+  </div>
+
+  <!-- ПЪРВАК -->
+  <div id="headsView" class="wrap" style="padding:0" hidden>
+    <form class="card" onsubmit="return false" autocomplete="off">
+      <div class="row2">
+        <div class="field"><label for="hV">В казана</label><div class="inbox"><input id="hV" inputmode="decimal" value="100"><span class="unit">л</span></div></div>
+        <div class="field"><label for="hA">Градус</label><div class="inbox"><input id="hA" inputmode="decimal" value="10"><span class="unit">°</span></div></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label for="hLo">Първак от</label><div class="inbox"><input id="hLo" inputmode="decimal" value="3"><span class="unit">%</span></div></div>
+        <div class="field"><label for="hHi">до</label><div class="inbox"><input id="hHi" inputmode="decimal" value="5"><span class="unit">%</span></div></div>
+      </div>
+      <div class="field"><label for="hS">Градус на първака <span class="opt">колко показва спиртомерът на чучура</span></label><div class="inbox"><input id="hS" inputmode="decimal" value="80"><span class="unit">°</span></div></div>
+    </form>
+    <section class="card result" aria-live="polite">
+      <div class="big">
+        <span class="k">Отдели поне</span>
+        <span class="v" id="hBig">—</span>
+      </div>
+      <dl class="rows" id="hRows"></dl>
+      <div class="note" id="hNote" hidden></div>
+    </section>
+    <section class="card">
+      <p class="empty">Процентите са от чистия алкохол в казана. Първакът излиза силен, затова количеството дестилат се смята по градуса на първака: дестилат = чист алкохол ÷ градус на първака. Това е минимумът. Ако миризмата на ацетон или лепило още се усеща, продължи да отделяш.</p>
+    </section>
   </div>
 
   <!-- ТЕМПЕРАТУРА -->
@@ -180,11 +246,12 @@ footer{color:var(--muted); font-size:12px; text-align:center}
       <dl class="rows" id="tRows"></dl>
       <div class="note" id="tNote" hidden></div>
       <div class="field">
-        <span class="k" style="font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.3px">Пренеси реалния градус в</span>
+        <span class="xk">Пренеси реалния градус в</span>
         <div class="xfer">
-          <button class="btn ghost" id="tToWater" type="button">Колко вода?</button>
-          <button class="btn ghost" id="tToAbv" type="button">Какъв градус?</button>
-          <button class="btn ghost" id="tToBatch" type="button">Партида</button>
+          <button class="btn ghost" data-x="water" data-src="t" type="button">Колко вода?</button>
+          <button class="btn ghost" data-x="abv" data-src="t" type="button">Какъв градус?</button>
+          <button class="btn ghost" data-x="batch" data-src="t" type="button">Партида</button>
+          <button class="btn ghost" data-x="heads" data-src="t" type="button">Първак</button>
         </div>
       </div>
     </section>
@@ -365,8 +432,9 @@ footer{color:var(--muted); font-size:12px; text-align:center}
 
 <script>
 (function(){
-  const APP_VERSION = '1.3.2';
+  const APP_VERSION = '1.4';
   const CHANGELOG = [
+    ['1.4','02.10.2026','Нов таб „Ареометър“: градус от измерена плътност или относително тегло и температура. Нов таб „Първак“: чист алкохол в казана и колко първак да се отдели. Пренасяне на градуса и към „Първак“.'],
     ['1.3.2','29.09.2026','Реалният градус от таб „Температура“ се пренася с отделни бутони в „Колко вода?“, „Какъв градус?“ и „Партида“. Без отворена партида отива като начален градус на нова.'],
     ['1.3.1','29.09.2026','В таб „Температура“: плътност при 20 °C и при температурата на мерене, относително тегло и процент алкохол по маса.'],
     ['1.3','29.09.2026','Таб „Температура“: поправка на показанието на спиртомера според температурата. Всички сметки вече са по официалните формули на OIML.'],
@@ -414,8 +482,8 @@ footer{color:var(--muted); font-size:12px; text-align:center}
   const fmtL = x => x<1 ? fmt(x*1000,0)+' мл' : fmt(x,2)+' л';
 
   let mode='water';
-  function load(){ try{ const s=JSON.parse(localStorage.getItem('rakia')||'null'); if(s){ ['vol','a1','a2','w','tR','tT'].forEach(k=>{ if(s[k]!=null) $(k).value=s[k]; }); if(s.mode) mode=s.mode; } }catch(e){} }
-  function save(){ try{ localStorage.setItem('rakia', JSON.stringify({vol:$('vol').value,a1:$('a1').value,a2:$('a2').value,w:$('w').value,tR:$('tR').value,tT:$('tT').value,mode})); }catch(e){} }
+  function load(){ try{ const s=JSON.parse(localStorage.getItem('rakia')||'null'); if(s){ ['vol','a1','a2','w','tR','tT','dU','dR','dT','hV','hA','hLo','hHi','hS'].forEach(k=>{ if(s[k]!=null) $(k).value=s[k]; }); if(s.mode) mode=s.mode; } }catch(e){} }
+  function save(){ try{ localStorage.setItem('rakia', JSON.stringify({vol:$('vol').value,a1:$('a1').value,a2:$('a2').value,w:$('w').value,tR:$('tR').value,tT:$('tT').value,dU:$('dU').value,dR:$('dR').value,dT:$('dT').value,hV:$('hV').value,hA:$('hA').value,hLo:$('hLo').value,hHi:$('hHi').value,hS:$('hS').value,mode})); }catch(e){} }
 
   function setMode(m){
     mode=m;
@@ -423,12 +491,16 @@ footer{color:var(--muted); font-size:12px; text-align:center}
     $('tab-abv').setAttribute('aria-selected', m==='abv');
     $('tab-batch').setAttribute('aria-selected', m==='batch');
     $('tab-temp').setAttribute('aria-selected', m==='temp');
-    $('calcView').hidden = m==='batch' || m==='temp';
+    $('tab-dens').setAttribute('aria-selected', m==='dens');
+    $('tab-heads').setAttribute('aria-selected', m==='heads');
+    $('calcView').hidden = !(m==='water'||m==='abv');
     $('batchView').hidden = m!=='batch';
     $('tempView').hidden = m!=='temp';
+    $('densView').hidden = m!=='dens';
+    $('headsView').hidden = m!=='heads';
     $('f-target').hidden = m!=='water';
     $('f-water').hidden = m!=='abv';
-    if(m==='batch') renderBatch(); else if(m==='temp') calcTemp(); else calc();
+    if(m==='batch') renderBatch(); else if(m==='temp') calcTemp(); else if(m==='dens') calcDens(); else if(m==='heads') calcHeads(); else calc();
     save();
   }
 
@@ -699,19 +771,21 @@ footer{color:var(--muted); font-size:12px; text-align:center}
   $('tab-abv').addEventListener('click',()=>setMode('abv'));
   $('tab-batch').addEventListener('click',()=>setMode('batch'));
   $('tab-temp').addEventListener('click',()=>setMode('temp'));
+  $('tab-dens').addEventListener('click',()=>setMode('dens'));
+  $('tab-heads').addEventListener('click',()=>setMode('heads'));
 
   // ---------- температура ----------
   let tLast=null;
   const sgn = d => Math.abs(d)<0.05 ? '0,0°' : (d>0?'+':'−')+fmt(Math.abs(d),1)+'°';
   function calcTemp(){
     const R=num($('tR')), T=num($('tT'));
-    tLast=null; ['tToWater','tToAbv','tToBatch'].forEach(id=>$(id).disabled=true);
+    tLast=null; xbtns('t',false);
     const bad = msg => { $('tBig').textContent='—'; $('tRows').innerHTML=''; $('tNote').hidden=false; $('tNote').textContent=msg; $('tTbl').innerHTML=''; };
     if(!(R>0&&R<100)) return bad('Въведи показанието на спиртомера, между 0 и 100.');
     if(!isFinite(T)) return bad('Въведи температурата на ракията в °C.');
     if(T<-20||T>40) return bad('Формулите важат от −20 до 40 °C.');
     const q=trueAbv(R,T), d=q-R;
-    tLast=q; ['tToWater','tToAbv','tToBatch'].forEach(id=>$(id).disabled=false);
+    tLast=q; xbtns('t',true);
     $('tBig').innerHTML = fmt(q,1)+'<small>°</small>';
     const pm=wOfAbv(q/100), r20=rhoPT(pm,20), rT=rhoPT(pm,T), sg=r20/rhoPT(0,20);
     const fT = fmt(T,Number.isInteger(T)?0:1);
@@ -728,14 +802,76 @@ footer{color:var(--muted); font-size:12px; text-align:center}
     $('tTbl').innerHTML=h;
   }
   ['tR','tT'].forEach(id=>$(id).addEventListener('input',()=>{calcTemp();save();}));
-  $('tToWater').addEventListener('click',()=>{ if(tLast==null) return; $('a1').value=fmt(tLast,1).replace(/\s/g,''); setMode('water'); });
-  $('tToAbv').addEventListener('click',()=>{ if(tLast==null) return; $('a1').value=fmt(tLast,1).replace(/\s/g,''); setMode('abv'); });
-  $('tToBatch').addEventListener('click',()=>{
-    if(tLast==null) return; const v=fmt(tLast,1).replace(/\s/g,'');
-    setMode('batch');
-    if(curB() && !showNew){ $('sMAbv').value=v; $('stepCard').scrollIntoView({block:'start'}); $('sMAbv').focus({preventScroll:true}); }
-    else { showNew=true; renderBatch(); $('nAbv').value=v; $('newCard').scrollIntoView({block:'start'}); }
+  // ---------- пренасяне на градус между табовете ----------
+  const xbtns = (src,on) => document.querySelectorAll(`[data-src="${src}"]`).forEach(b=>b.disabled=!on);
+  function xfer(val, target){
+    if(val==null) return; const v=fmt(val,1).replace(/\s/g,'');
+    if(target==='water'||target==='abv'){ $('a1').value=v; setMode(target); }
+    else if(target==='heads'){ $('hA').value=v; setMode('heads'); }
+    else if(target==='batch'){
+      setMode('batch');
+      if(curB() && !showNew){ $('sMAbv').value=v; $('stepCard').scrollIntoView({block:'start'}); }
+      else { showNew=true; renderBatch(); $('nAbv').value=v; $('newCard').scrollIntoView({block:'start'}); }
+    }
+    save();
+  }
+  document.querySelectorAll('[data-x]').forEach(b=>b.addEventListener('click',()=>xfer(b.dataset.src==='t'?tLast:dLast, b.dataset.x)));
+
+  // ---------- ареометър ----------
+  let dLast=null;
+  function calcDens(){
+    const sgMode=$('dU').value==='sg'; let R=num($('dR')); const T=num($('dT'));
+    $('dRU').textContent = sgMode ? '' : (R>100?'kg/m³':'g/cm³');
+    dLast=null; xbtns('d',false);
+    const bad = msg => { $('dBig').textContent='—'; $('dRows').innerHTML=''; $('dNote').hidden=false; $('dNote').textContent=msg; };
+    if(!(R>0)) return bad('Въведи показанието на ареометъра.');
+    if(!isFinite(T)) return bad('Въведи температурата в °C.');
+    if(T<-20||T>40) return bad('Формулите важат от −20 до 40 °C.');
+    const rho20p = sgMode ? R*rhoPT(0,20) : (R>100 ? R : R*1000);   // kg/m³, както показва уредът
+    const rhoT = rho20p*(1-25e-6*(T-20));                            // поправка за стъклото
+    const lo=rhoPT(1,T), hi=rhoPT(0,T);
+    if(rhoT<lo-0.5 || rhoT>hi+0.5) return bad(`Плътността трябва да е между ${fmt(lo,0)} и ${fmt(hi,0)} kg/m³ при ${fmt(T,0)} °C. По-голяма плътност от водата значи захар или други вещества, тогава ареометърът не показва градуса.`);
+    const pm=solve(x=>rhoPT(x,T), rhoT, false), q=abvOfW(pm)*100, r20=rhoPT(pm,20);
+    dLast=q; xbtns('d',true);
+    $('dBig').innerHTML = fmt(q,1)+'<small>°</small>';
+    const fT=fmt(T,Number.isInteger(T)?0:1);
+    $('dRows').innerHTML =
+      `<dt>Алкохол по маса</dt><dd>${fmt(pm*100,1)} %</dd>`+
+      `<dt>Плътност при 20 °C</dt><dd>${fmt(r20,1)} kg/m³</dd>`+
+      (Math.abs(T-20)<0.05?'':`<dt>Плътност при ${fT} °C</dt><dd>${fmt(rhoT,1)} kg/m³</dd>`)+
+      `<dt>Отн. тегло 20/20&nbsp;°C</dt><dd>${fmt(r20/rhoPT(0,20),4)}</dd>`;
+    $('dNote').hidden = Math.abs(T-20)<=10;
+    $('dNote').innerHTML = '<b>Голяма разлика от 20 °C.</b> Поправката е вярна, но за по-точно мерене остави течността да се темперира до стайна температура.';
+  }
+  ['dR','dT'].forEach(id=>$(id).addEventListener('input',()=>{calcDens();save();}));
+  $('dU').addEventListener('change',()=>{
+    const R=num($('dR')), toSg=$('dU').value==='sg';
+    if(R>0){ const kg = toSg ? (R>100?R:R*1000) : R*rhoPT(0,20); $('dR').value = (toSg ? fmt(kg/rhoPT(0,20),4) : fmt(kg/1000,4)).replace(/\s/g,''); }
+    calcDens(); save();
   });
+
+  // ---------- първак ----------
+  function calcHeads(){
+    const V=num($('hV')), A=num($('hA')), lo=num($('hLo')), hi=num($('hHi')), S=num($('hS'));
+    const bad = msg => { $('hBig').textContent='—'; $('hRows').innerHTML=''; $('hNote').hidden=false; $('hNote').textContent=msg; };
+    if(!(V>0)) return bad('Въведи колко литра слагаш в казана.');
+    if(!(A>0&&A<=100)) return bad('Градусът трябва да е между 0 и 100.');
+    if(!(lo>0&&hi>=lo&&hi<100)) return bad('Въведи процентите за първака, например от 3 до 5.');
+    if(!(S>0&&S<=100)) return bad('Градусът на първака трябва да е между 0 и 100.');
+    const pure=V*A/100, pLo=pure*lo/100, pHi=pure*hi/100, dLo=pLo/(S/100), dHi=pHi/(S/100);
+    const u = x => x<1 ? fmt(x*1000,0) : fmt(x,2);
+    const unit = dHi<1 ? 'мл' : 'л';
+    $('hBig').innerHTML = `${dLo<1&&dHi>=1?fmtL(dLo).replace(' ','&nbsp;'):u(dLo)} – ${u(dHi)}<small>${unit}</small>`;
+    const pct = x => fmt(x, Number.isInteger(x)?0:1);
+    $('hRows').innerHTML =
+      `<dt>Чист алкохол в казана</dt><dd>${fmtL(pure)}</dd>`+
+      `<dt>${pct(lo)} % от него</dt><dd>${fmtL(pLo)}</dd>`+
+      `<dt>${pct(hi)} % от него</dt><dd>${fmtL(pHi)}</dd>`+
+      `<dt>Като първак с ${pct(S)}°</dt><dd>${fmtL(dLo)} – ${fmtL(dHi)}</dd>`;
+    $('hNote').hidden = A<=20;
+    $('hNote').innerHTML = '<b>Висок градус за казан.</b> Ако преваряваш мека ракия, процентите пак се смятат от чистия алкохол в нея.';
+  }
+  ['hV','hA','hLo','hHi','hS'].forEach(id=>$(id).addEventListener('input',()=>{calcHeads();save();}));
 
   // тема: авто → тъмна → светла
   const root=document.documentElement;
