@@ -133,6 +133,13 @@ textarea{width:100%; min-height:90px; font:13px/1.4 var(--mono); background:var(
 #logBody tr[data-i]:hover td, #logBody tr.sel td, #tTbl tr.sel td{background:var(--copper-soft)}
 .btn:disabled{opacity:.45; cursor:default}
 .xfer{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px}
+.warnc{background:var(--warn-soft)}
+.warnc h2{color:var(--warn)}
+.warnc p{margin:0; font-size:14px; max-width:65ch}
+.intro{margin:0; color:var(--muted); font-size:15px; max-width:65ch}
+.tips{margin:0; padding-left:18px; display:flex; flex-direction:column; gap:8px; font-size:14px; color:var(--muted)}
+.tips b{color:var(--ink); font-weight:600}
+#curCard h2+.empty{margin-top:-6px}
 .xk{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.3px}
 .xfer .btn{padding:12px 6px; font-size:14px}
 #logBody td.ed{color:var(--muted); width:1.4em; text-align:center}
@@ -162,7 +169,7 @@ footer{color:var(--muted); font-size:12px; text-align:center}
     <button role="tab" id="tab-water" aria-selected="true" type="button">Колко вода?</button>
     <button role="tab" id="tab-abv" aria-selected="false" type="button">Какъв градус?</button>
     <button role="tab" id="tab-batch" aria-selected="false" type="button">Партида</button>
-    <button role="tab" id="tab-temp" aria-selected="false" type="button">Температура</button>
+    <button role="tab" id="tab-temp" aria-selected="false" type="button">Температурна корекция</button>
     <button role="tab" id="tab-dens" aria-selected="false" type="button">Ареометър</button>
     <button role="tab" id="tab-heads" aria-selected="false" type="button">Първак</button>
   </div>
@@ -206,16 +213,17 @@ footer{color:var(--muted); font-size:12px; text-align:center}
 
   <!-- ПЪРВАК -->
   <div id="headsView" class="wrap" style="padding:0" hidden>
+    <p class="intro">За отделяне на първак при втората превара, когато в казана слагаш мека ракия от първата варка.</p>
     <form class="card" onsubmit="return false" autocomplete="off">
       <div class="row2">
-        <div class="field"><label for="hV">В казана</label><div class="inbox"><input id="hV" inputmode="decimal" value="100"><span class="unit">л</span></div></div>
-        <div class="field"><label for="hA">Градус</label><div class="inbox"><input id="hA" inputmode="decimal" value="10"><span class="unit">°</span></div></div>
+        <div class="field"><label for="hV">В казана</label><div class="inbox"><input id="hV" inputmode="decimal" value="50"><span class="unit">л</span></div></div>
+        <div class="field"><label for="hA">Градус</label><div class="inbox"><input id="hA" inputmode="decimal" value="30"><span class="unit">°</span></div></div>
       </div>
       <div class="row2">
-        <div class="field"><label for="hLo">Първак от</label><div class="inbox"><input id="hLo" inputmode="decimal" value="3"><span class="unit">%</span></div></div>
-        <div class="field"><label for="hHi">до</label><div class="inbox"><input id="hHi" inputmode="decimal" value="5"><span class="unit">%</span></div></div>
+        <div class="field"><label for="hLo">Първак от</label><div class="inbox"><input id="hLo" inputmode="decimal" value="4"><span class="unit">%</span></div></div>
+        <div class="field"><label for="hHi">до</label><div class="inbox"><input id="hHi" inputmode="decimal" value="6"><span class="unit">%</span></div></div>
       </div>
-      <div class="field"><label for="hS">Градус на първака <span class="opt">колко показва спиртомерът на чучура</span></label><div class="inbox"><input id="hS" inputmode="decimal" value="80"><span class="unit">°</span></div></div>
+      <div class="field"><label for="hS">Среден градус на първака <span class="opt">колко показва спиртомерът на чучура</span></label><div class="inbox"><input id="hS" inputmode="decimal" value="80"><span class="unit">°</span></div></div>
     </form>
     <section class="card result" aria-live="polite">
       <div class="big">
@@ -226,7 +234,11 @@ footer{color:var(--muted); font-size:12px; text-align:center}
       <div class="note" id="hNote" hidden></div>
     </section>
     <section class="card">
-      <p class="empty">Процентите са от чистия алкохол в казана. Първакът излиза силен, затова количеството дестилат се смята по градуса на първака: дестилат = чист алкохол ÷ градус на първака. Това е минимумът. Ако миризмата на ацетон или лепило още се усеща, продължи да отделяш.</p>
+      <p class="empty">Процентите са от чистия алкохол в казана. Първакът излиза силен, затова количеството дестилат се смята по средния му градус: дестилат = чист алкохол ÷ градус на първака. Това е минимумът. Ако миризмата на ацетон или лепило още се усеща, продължи да отделяш.</p>
+    </section>
+    <section class="card warnc">
+      <h2>Отговорността е твоя</h2>
+      <p>Тези числа са само ориентир, а не гаранция за безопасен продукт. Колко първак (и метанол) дава една варка зависи от вида на плодовете или суровината, тяхната зрялост и чистота, ферментацията, казана и начина на варене. Всеки сам носи отговорност за това какво количество ще отдели. Авторът на приложението не носи отговорност за резултата.</p>
     </section>
   </div>
 
@@ -267,6 +279,7 @@ footer{color:var(--muted); font-size:12px; text-align:center}
 
   <!-- ПАРТИДА -->
   <div id="batchView" class="wrap" style="padding:0" hidden>
+    <p class="intro">Тук планираш разреждането на дестилата до питейни градуси на няколко стъпки и пазиш дневник на всяка стъпка: колко вода си налял и какво си измерил след това.</p>
     <section class="card" id="pickCard">
       <div class="field">
         <label for="bSel">Партида</label>
@@ -274,6 +287,7 @@ footer{color:var(--muted); font-size:12px; text-align:center}
       </div>
       <div class="btns">
         <button class="btn ghost" id="bNewBtn" type="button">Нова партида</button>
+        <button class="btn ghost" id="bEditBtn" type="button">Редактирай партидата</button>
         <button class="btn danger" id="bDelBtn" type="button">Изтрий партидата</button>
       </div>
     </section>
@@ -289,10 +303,11 @@ footer{color:var(--muted); font-size:12px; text-align:center}
         <div class="field"><label for="nAbv">Градус</label><div class="inbox"><input id="nAbv" inputmode="decimal" placeholder="68"><span class="unit">°</span></div></div>
       </div>
       <div class="row2">
-        <div class="field"><label for="nTarget">Крайна цел</label><div class="inbox"><input id="nTarget" inputmode="decimal" value="42"><span class="unit">°</span></div></div>
-        <div class="field"><label for="nSteps">Брой стъпки</label><div class="inbox"><input id="nSteps" inputmode="numeric" value="3"></div></div>
+        <div class="field"><label for="nTarget">Крайна цел</label><div class="inbox"><input id="nTarget" inputmode="decimal" value="45"><span class="unit">°</span></div></div>
+        <div class="field"><label for="nSteps">Брой стъпки <span class="opt">поне 4</span></label><div class="inbox"><input id="nSteps" inputmode="numeric" value="4"></div></div>
       </div>
       <div class="field"><label for="nDate">Дата</label><div class="inbox"><input type="date" id="nDate"></div></div>
+      <p class="empty">Препоръчителната крайна цел е 45°. Първата стъпка е днес, а всяка следваща — поне седмица по-късно.</p>
       <p class="msg" id="nMsg"></p>
       <div class="btns">
         <button class="btn" id="nStart" type="button">Започни партидата</button>
@@ -302,6 +317,7 @@ footer{color:var(--muted); font-size:12px; text-align:center}
 
     <section class="card" id="curCard" hidden>
       <h2>Сега в съда</h2>
+      <p class="empty">Това е състоянието в съда, ако са направени всички стъпки от дневника по-долу: с измерените стойности, където ги има, и с изчислените, където няма.</p>
       <div class="state">
         <div><span class="k">Обем</span><span class="v" id="sVol">—</span></div>
         <div><span class="k">Градус</span><span class="v c" id="sAbv">—</span></div>
@@ -311,11 +327,16 @@ footer{color:var(--muted); font-size:12px; text-align:center}
         <div class="field"><label for="pTarget">Крайна цел</label><div class="inbox"><input id="pTarget" inputmode="decimal"><span class="unit">°</span></div></div>
         <div class="field"><label for="pSteps">Остават стъпки</label><div class="inbox"><input id="pSteps" inputmode="numeric"></div></div>
       </div>
+      <h2>Препоръчителни стъпки</h2>
+      <p class="empty">До 46° — най-много 6° на стъпка, под 46° — най-много 2°. Между стъпките остави поне 1 седмица почивка, за да „намери себе си“. Датите са сметнати така.</p>
       <div class="tbl"><table>
-        <thead><tr><th>План</th><th>До</th><th>Вода</th><th>Обем</th></tr></thead>
+        <thead><tr><th>Стъпка</th><th>Дата</th><th>До</th><th>Вода</th><th>Обем</th></tr></thead>
         <tbody id="planBody"></tbody>
       </table></div>
+      <p class="empty" id="planEnd" hidden></p>
+      <div class="note" id="planWarn" hidden></div>
       <p class="empty" id="planNote" hidden></p>
+      <button class="btn ghost" id="planReset" type="button">Върни препоръчителните стъпки</button>
     </section>
 
     <form class="card" id="stepCard" onsubmit="return false" hidden>
@@ -338,10 +359,21 @@ footer{color:var(--muted); font-size:12px; text-align:center}
     <section class="card" id="logCard" hidden>
       <h2>Дневник</h2>
       <div class="tbl"><table>
-        <thead><tr><th>Дата</th><th>Вода</th><th>Обем</th><th>Градус</th><th></th></tr></thead>
+        <thead><tr><th>№</th><th>Дата</th><th>Вода</th><th>Обем</th><th>Градус</th><th></th></tr></thead>
         <tbody id="logBody"></tbody>
       </table></div>
-      <p class="empty">Докосни ред, за да го редактираш. Под реалната стойност с дребен шрифт е изчислената. Ако не си мерил, остава изчислената.</p>
+      <p class="empty">Докосни ред, за да го редактираш. Под реалната стойност с дребен шрифт е изчислената. Ако не си мерил, остава изчислената. Ако изтриеш стъпка, изтриват се и всички след нея.</p>
+    </section>
+
+    <section class="card">
+      <h2>Как да разреждаш</h2>
+      <ul class="tips">
+        <li><b>Вода с ниска минерализация</b> — мека изворна, дестилирана или деминерализирана. Твърдата вода с много калций и магнезий може да помътни ракията и да остави утайка.</li>
+        <li><b>Наливай на тънка струйка</b> и разбърквай през цялото време, а накрая разбъркай добре още веднъж.</li>
+        <li><b>Дръж съда на прохладно място</b>, далеч от слънце и топлина, докато почива.</li>
+        <li><b>Под 46° е зоната на помътняване.</b> Там част от ароматните масла излизат от разтвора и ракията може да помътнее. Затова под 46° стъпките са малки — до 2° на стъпка.</li>
+        <li><b>Почивка поне 1 седмица</b> между стъпките, после премери градуса и обема и ги запиши.</li>
+      </ul>
     </section>
 
     <form class="card edit" id="editCard" onsubmit="return false" hidden>
@@ -360,7 +392,7 @@ footer{color:var(--muted); font-size:12px; text-align:center}
         <button class="btn" id="eSave" type="button">Запази</button>
         <button class="btn ghost" id="eCancel" type="button">Откажи</button>
       </div>
-      <button class="btn danger" id="eDel" type="button">Изтрий стъпката</button>
+      <button class="btn danger" id="eDel" type="button">Изтрий стъпката и следващите</button>
     </form>
 
     <details>
@@ -417,7 +449,7 @@ footer{color:var(--muted); font-size:12px; text-align:center}
     <ul>
       <li>Алкохолът и водата не се събират просто по обем: 1 л + 1 л дава малко под 2 л. Затова смятам по маса, с официалните формули за плътност на спирт-вода (международните алкохолометрични таблици на OIML).</li>
       <li>Количеството чист алкохол не се променя, затова крайният обем винаги е <i>количество × сегашен ÷ нов градус</i>. Водата, която трябва да налееш, е повече от разликата, защото сместа се свива.</li>
-      <li>Мери градуса със спиртомера при около 20 °C. При топла ракия спиртомерът показва повече, при студена — по-малко. Поправката е в таб „Температура“.</li>
+      <li>Мери градуса със спиртомера при около 20 °C. При топла ракия спиртомерът показва повече, при студена — по-малко. Поправката е в таб „Температурна корекция“.</li>
       <li>Наливай водата на части, разбъркай, остави да престои и премери пак.</li>
     </ul>
   </details>
@@ -432,8 +464,9 @@ footer{color:var(--muted); font-size:12px; text-align:center}
 
 <script>
 (function(){
-  const APP_VERSION = '1.4';
+  const APP_VERSION = '1.5';
   const CHANGELOG = [
+    ['1.5','03.11.2026','„Температура“ се казва „Температурна корекция“. Партида: препоръчителни стъпки по правила (поне 4, до 46° по най-много 6°, под 46° по най-много 2°, почивка 1 седмица), дати на стъпките, предупреждение при недостиг на стъпки, бутон за връщане на препоръчителните стъпки, номерация в дневника, редакция на партидата, изтриване на стъпка заедно със следващите, съвети за разреждане, цел по подразбиране 45°. Първак: за втората превара, 4–6 % при среден градус 80°, отказ от отговорност.'],
     ['1.4','02.10.2026','Нов таб „Ареометър“: градус от измерена плътност или относително тегло и температура. Нов таб „Първак“: чист алкохол в казана и колко първак да се отдели. Пренасяне на градуса и към „Първак“.'],
     ['1.3.2','29.09.2026','Реалният градус от таб „Температура“ се пренася с отделни бутони в „Колко вода?“, „Какъв градус?“ и „Партида“. Без отворена партида отива като начален градус на нова.'],
     ['1.3.1','29.09.2026','В таб „Температура“: плътност при 20 °C и при температурата на мерене, относително тегло и процент алкохол по маса.'],
@@ -482,8 +515,9 @@ footer{color:var(--muted); font-size:12px; text-align:center}
   const fmtL = x => x<1 ? fmt(x*1000,0)+' мл' : fmt(x,2)+' л';
 
   let mode='water';
-  function load(){ try{ const s=JSON.parse(localStorage.getItem('rakia')||'null'); if(s){ ['vol','a1','a2','w','tR','tT','dU','dR','dT','hV','hA','hLo','hHi','hS'].forEach(k=>{ if(s[k]!=null) $(k).value=s[k]; }); if(s.mode) mode=s.mode; } }catch(e){} }
-  function save(){ try{ localStorage.setItem('rakia', JSON.stringify({vol:$('vol').value,a1:$('a1').value,a2:$('a2').value,w:$('w').value,tR:$('tR').value,tT:$('tT').value,dU:$('dU').value,dR:$('dR').value,dT:$('dT').value,hV:$('hV').value,hA:$('hA').value,hLo:$('hLo').value,hHi:$('hHi').value,hS:$('hS').value,mode})); }catch(e){} }
+  function load(){ try{ const s=JSON.parse(localStorage.getItem('rakia')||'null'); if(s){ if(!s.v){ if(s.hLo==='3'&&s.hHi==='5'){ delete s.hLo; delete s.hHi; } if(s.hV==='100'&&s.hA==='10'){ delete s.hV; delete s.hA; } }
+      ['vol','a1','a2','w','tR','tT','dU','dR','dT','hV','hA','hLo','hHi','hS'].forEach(k=>{ if(s[k]!=null) $(k).value=s[k]; }); if(s.mode) mode=s.mode; } }catch(e){} }
+  function save(){ try{ localStorage.setItem('rakia', JSON.stringify({vol:$('vol').value,a1:$('a1').value,a2:$('a2').value,w:$('w').value,tR:$('tR').value,tT:$('tT').value,dU:$('dU').value,dR:$('dR').value,dT:$('dT').value,hV:$('hV').value,hA:$('hA').value,hLo:$('hLo').value,hHi:$('hHi').value,hS:$('hS').value,mode,v:2})); }catch(e){} }
 
   function setMode(m){
     mode=m;
@@ -528,16 +562,38 @@ footer{color:var(--muted); font-size:12px; text-align:center}
   }
   let showNew=false, waterDirty=false, goalDirty=false;
 
+  // Правила за препоръчителните стъпки
+  const MIN_STEPS=4, MAX_DROP=6, MAX_DROP_LOW=2, CLOUD=46, REST_DAYS=7;
+  function addDays(iso,n){ const [y,m,d]=iso.split('-').map(Number); const t=new Date(Date.UTC(y,m-1,d+n)); return t.toISOString().slice(0,10); }
+  // Дата на следващата стъпка: първата е днес, всяка следваща е седмица след последната записана.
+  function nextDate(b){ return b.steps.length ? addDays(b.steps[b.steps.length-1].date||today(), REST_DAYS) : today(); }
+  // Колко стъпки са нужни най-малко от A до T: над 46° по 6°, под 46° по 2°.
+  function zones(A,T){
+    const above=Math.max(0, A-Math.max(T,CLOUD)), below=Math.max(0, Math.min(A,CLOUD)-T);
+    return { above, below, m1:Math.ceil(above/MAX_DROP-1e-9), m2:Math.ceil(below/MAX_DROP_LOW-1e-9) };
+  }
+  // План с n стъпки. Ако n стигат — допълнителните стъпки отиват над 46°, където скокът е по-голям.
+  // Ако не стигат — показва първите n стъпки от минималния план и колко още трябват.
   function planRows(b){
     const {vol,abv}=stateOf(b), T=b.target, n=Math.max(1,Math.round(b.stepsLeft||1));
-    if(!(T>0) || T>=abv-0.05) return [];
-    const rows=[]; let V=vol, A=abv;
-    for(let i=1;i<=n;i++){
-      const B = abv-(abv-T)*i/n, r=waterFor(V,A,B);
-      rows.push({i,B,water:r.water,vol:r.vol}); V=r.vol; A=B;
+    if(!(T>0) || T>=abv-0.05) return {rows:[], short:0, needed:0};
+    const z=zones(abv,T), needed=z.m1+z.m2;
+    let m1=z.m1, m2=z.m2;
+    if(n>needed){ if(z.above>0) m1+=n-needed; else m2+=n-needed; }
+    const marks=[];
+    const top=Math.max(T,CLOUD);
+    for(let i=1;i<=m1;i++) marks.push(abv-(abv-top)*i/m1);
+    const from=Math.min(abv,CLOUD);
+    for(let i=1;i<=m2;i++) marks.push(from-(from-T)*i/m2);
+    const take=Math.min(n,marks.length), rows=[]; let V=vol, A=abv, date=nextDate(b);
+    for(let i=0;i<take;i++){
+      const B=marks[i], r=waterFor(V,A,B);
+      rows.push({i:i+1,B,water:r.water,vol:r.vol,date}); V=r.vol; A=B; date=addDays(date,REST_DAYS);
     }
-    return rows;
+    return {rows, short:Math.max(0,needed-n), needed};
   }
+  // Препоръчителен брой оставащи стъпки: колкото са нужни, но общо поне 4.
+  const recSteps = b => { const {abv}=stateOf(b); const z=zones(abv,b.target); return Math.max(z.m1+z.m2, MIN_STEPS-b.steps.length, 1); };
 
   function renderBatch(){
     // избор на партида
@@ -550,7 +606,7 @@ footer{color:var(--muted); font-size:12px; text-align:center}
     if(creating || !b){ editIdx=null; $('editCard').hidden=true; }
     $('newCard').hidden = !creating;
     $('pickCard').hidden = !db.batches.length;
-    $('bDelBtn').hidden = !b;
+    $('bDelBtn').hidden = !b; $('bEditBtn').hidden = !b;
     $('nCancel').hidden = !b;
     if(creating && !$('nDate').value) $('nDate').value=today();
     ['curCard','stepCard','logCard'].forEach(id=>$(id).hidden = creating || !b);
@@ -563,23 +619,29 @@ footer{color:var(--muted); font-size:12px; text-align:center}
     if(document.activeElement!==$('pTarget')) $('pTarget').value = String(b.target).replace('.',',');
     if(document.activeElement!==$('pSteps')) $('pSteps').value = b.stepsLeft;
 
-    const rows=planRows(b);
-    $('planBody').innerHTML = rows.map(r=>`<tr><td>${b.steps.length+r.i}</td><td>${fmt(r.B,1)}°</td><td>${fmtL(r.water)}</td><td>${fmt(r.vol,2)} л</td></tr>`).join('');
-    const done = !rows.length;
+    const plan=planRows(b), rows=plan.rows;
+    $('planBody').innerHTML = rows.map(r=>`<tr><td>${b.steps.length+r.i}</td><td>${fDate(r.date)}</td><td>${fmt(r.B,1)}°</td><td>${fmtL(r.water)}</td><td>${fmt(r.vol,2)} л</td></tr>`).join('');
+    const done = !rows.length, last=rows[rows.length-1];
     $('planNote').hidden = !done;
     $('planNote').textContent = done ? `Партидата е на ${fmt(abv,1)}°, целта е достигната. Ако искаш още, смени крайната цел.` : '';
+    $('planEnd').hidden = done;
+    if(last) $('planEnd').innerHTML = `Ако спазиш всички стъпки: <b>${fmt(last.vol,2)} л на ${fmt(last.B,1)}°</b> около ${fDate(last.date)}.`;
+    $('planWarn').hidden = !plan.short;
+    if(plan.short) $('planWarn').innerHTML = `<b>${b.stepsLeft} ${b.stepsLeft===1?'стъпка не стига':'стъпки не стигат'}.</b> С тях при тези правила стигаш до ${fmt(last.B,1)}°. За ${fmt(b.target,1)}° ${plan.short===1?'ще е нужна още 1 стъпка':`ще са нужни още ${plan.short} стъпки`}. Натисни „Върни препоръчителните стъпки“, за да ги добавиш.`;
+    const rec=recSteps(b);
+    $('planReset').hidden = done || (b.stepsLeft===rec && !goalDirty && !waterDirty);
 
     $('stepTitle').textContent = `Стъпка ${b.steps.length+1}`;
     if(!goalDirty) $('sGoal').value = rows.length ? fmt(rows[0].B,1).replace(/\s/g,'') : '';
-    if(!$('sDate').value) $('sDate').value=today();
+    if(!$('sDate').value) $('sDate').value=nextDate(b);
     updateStep(b);
 
     // дневник
     const selC = i => editIdx===i ? ' sel' : '';
-    let h=`<tr class="start${selC(-1)}" data-i="-1"><td>${fDate(b.start.date)}</td><td>начало</td><td>${fmt(b.start.vol,2)}</td><td>${fmt(b.start.abv,1)}°</td><td class="ed">✎</td></tr>`;
+    let h=`<tr class="start${selC(-1)}" data-i="-1"><td>—</td><td>${fDate(b.start.date)}</td><td>начало</td><td>${fmt(b.start.vol,2)}</td><td>${fmt(b.start.abv,1)}°</td><td class="ed">✎</td></tr>`;
     b.steps.forEach((s,i)=>{
       const vReal=s.vol!=null, aReal=s.abv!=null;
-      h+=`<tr class="${selC(i)}" data-i="${i}"><td>${fDate(s.date)}${s.note?`<span class="p" style="font-family:var(--body)">${esc(s.note)}</span>`:''}</td><td>${fmt(s.water,2)}</td>`+
+      h+=`<tr class="${selC(i)}" data-i="${i}"><td>${i+1}</td><td>${fDate(s.date)}${s.note?`<span class="p" style="font-family:var(--body)">${esc(s.note)}</span>`:''}</td><td>${fmt(s.water,2)}</td>`+
          `<td>${fmt(vReal?s.vol:s.predVol,2)}${vReal?`<span class="p">${fmt(s.predVol,2)}</span>`:'<span class="p">изчисл.</span>'}</td>`+
          `<td>${fmt(aReal?s.abv:s.predAbv,1)}°${aReal?`<span class="p">${fmt(s.predAbv,1)}°</span>`:'<span class="p">изчисл.</span>'}</td><td class="ed">✎</td></tr>`;
     });
@@ -610,11 +672,13 @@ footer{color:var(--muted); font-size:12px; text-align:center}
     btn.dataset.l=btn.textContent; btn.textContent=label; btn.classList.add('armed');
     setTimeout(()=>{ if(btn.classList.contains('armed')){ btn.classList.remove('armed'); btn.textContent=btn.dataset.l; } },4000);
   }
-  const resetStep = () => { waterDirty=false; goalDirty=false; ['sGoal','sWater','sMAbv','sMVol','sNote'].forEach(id=>$(id).value=''); $('sDate').value=today(); };
+  const resetStep = () => { waterDirty=false; goalDirty=false; ['sGoal','sWater','sMAbv','sMVol','sNote','sDate'].forEach(id=>$(id).value=''); };
 
   $('bSel').addEventListener('change',e=>{ db.cur=e.target.value; showNew=false; editIdx=null; $('editCard').hidden=true; resetStep(); dbSave(); renderBatch(); });
   $('bNewBtn').addEventListener('click',()=>{ showNew=true; $('nMsg').textContent=''; renderBatch(); $('nName').focus(); });
   $('nCancel').addEventListener('click',()=>{ showNew=false; renderBatch(); });
+  $('bEditBtn').addEventListener('click',()=>{ if(curB()) openEdit(-1); });
+  $('planReset').addEventListener('click',()=>{ const b=curB(); if(!b) return; b.stepsLeft=recSteps(b); goalDirty=false; waterDirty=false; $('sGoal').value=''; $('sWater').value=''; dbSave(); renderBatch(); });
   $('bDelBtn').addEventListener('click',e=>arm(e.currentTarget,'Натисни пак за изтриване',()=>{
     db.batches=db.batches.filter(b=>b.id!==db.cur); db.cur=db.batches[0]?.id||null; dbSave(); resetStep(); renderBatch();
   }));
@@ -623,8 +687,9 @@ footer{color:var(--muted); font-size:12px; text-align:center}
     if(!(V>0)) return $('nMsg').textContent='Въведи обема в литри.';
     if(!(A>0&&A<=100)) return $('nMsg').textContent='Градусът трябва да е между 0 и 100.';
     if(!(T>0&&T<A)) return $('nMsg').textContent='Крайната цел трябва да е под сегашния градус.';
+    if(!(n>=MIN_STEPS)) return $('nMsg').textContent='Стъпките трябва да са поне 4.';
     const b={ id:Date.now().toString(36), name:$('nName').value.trim()||('Партида '+fDate($('nDate').value||today())),
-      target:T, stepsLeft:(n>0?n:1), start:{date:$('nDate').value||today(), vol:V, abv:A}, steps:[] };
+      target:T, stepsLeft:n, start:{date:$('nDate').value||today(), vol:V, abv:A}, steps:[] };
     db.batches.unshift(b); db.cur=b.id; showNew=false; dbSave();
     ['nName','nVol','nAbv'].forEach(id=>$(id).value=''); resetStep(); renderBatch();
   });
@@ -651,7 +716,7 @@ footer{color:var(--muted); font-size:12px; text-align:center}
   function openEdit(i){
     const b=curB(); if(!b) return;
     editIdx=i; const isStart=i<0, s=isStart?null:b.steps[i];
-    $('eTitle').textContent = isStart ? 'Редакция на началото' : `Редакция на стъпка ${i+1}`;
+    $('eTitle').textContent = isStart ? 'Редакция на партидата' : `Редакция на стъпка ${i+1}`;
     $('eNameF').hidden=!isStart; $('eWaterF').hidden=isStart; $('eNoteF').hidden=isStart; $('eDel').hidden=isStart;
     $('eAbvL').innerHTML = isStart ? 'Начален градус' : 'Измерен градус <span class="opt">по желание</span>';
     $('eVolL').innerHTML = isStart ? 'Начален обем' : 'Измерен обем <span class="opt">по желание</span>';
@@ -663,9 +728,10 @@ footer{color:var(--muted); font-size:12px; text-align:center}
       $('eWater').value=toIn(s.water,2); $('eAbv').value=toIn(s.abv,1); $('eVol').value=toIn(s.vol,2);
       $('eAbv').placeholder=toIn(s.predAbv,1); $('eVol').placeholder=toIn(s.predVol,2);
       $('eDate').value=s.date; $('eNote').value=s.note||'';
-      $('eHint').textContent='Празно поле означава, че не си мерил и се ползва изчислената стойност. Следващите стъпки се преизчисляват.';
+      $('eHint').textContent='Празно поле означава, че не си мерил и се ползва изчислената стойност. Следващите стъпки се преизчисляват. Изтриването маха тази стъпка и всички след нея.';
     }
-    $('eMsg').textContent=''; $('eDel').classList.remove('armed'); $('eDel').textContent='Изтрий стъпката';
+    $('eMsg').textContent=''; $('eDel').classList.remove('armed');
+    $('eDel').textContent = (!isStart && i<b.steps.length-1) ? `Изтрий стъпка ${i+1} и следващите ${b.steps.length-1-i}` : 'Изтрий стъпката';
     $('editCard').hidden=false; renderBatch();
     $('editCard').scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth', block:'start'});
   }
@@ -690,7 +756,7 @@ footer{color:var(--muted); font-size:12px; text-align:center}
   });
   $('eDel').addEventListener('click',e=>arm(e.currentTarget,'Натисни пак за изтриване',()=>{
     const b=curB(); if(!b||editIdx==null||editIdx<0) return;
-    b.steps.splice(editIdx,1); b.stepsLeft++; recalc(b); dbSave(); resetStep(); closeEdit();
+    const removed=b.steps.length-editIdx; b.steps.splice(editIdx); b.stepsLeft+=removed; recalc(b); dbSave(); resetStep(); closeEdit();
   }));
 
   // преизчислява очакваното за всяка стъпка от реалното преди нея
@@ -856,20 +922,20 @@ footer{color:var(--muted); font-size:12px; text-align:center}
     const bad = msg => { $('hBig').textContent='—'; $('hRows').innerHTML=''; $('hNote').hidden=false; $('hNote').textContent=msg; };
     if(!(V>0)) return bad('Въведи колко литра слагаш в казана.');
     if(!(A>0&&A<=100)) return bad('Градусът трябва да е между 0 и 100.');
-    if(!(lo>0&&hi>=lo&&hi<100)) return bad('Въведи процентите за първака, например от 3 до 5.');
+    if(!(lo>0&&hi>=lo&&hi<100)) return bad('Въведи процентите за първака, например от 4 до 6.');
     if(!(S>0&&S<=100)) return bad('Градусът на първака трябва да е между 0 и 100.');
     const pure=V*A/100, pLo=pure*lo/100, pHi=pure*hi/100, dLo=pLo/(S/100), dHi=pHi/(S/100);
     const u = x => x<1 ? fmt(x*1000,0) : fmt(x,2);
     const unit = dHi<1 ? 'мл' : 'л';
-    $('hBig').innerHTML = `${dLo<1&&dHi>=1?fmtL(dLo).replace(' ','&nbsp;'):u(dLo)} – ${u(dHi)}<small>${unit}</small>`;
+    $('hBig').innerHTML = dHi<1 ? `${fmt(dLo*1000,0)} – ${fmt(dHi*1000,0)}<small>мл</small>` : `${fmt(dLo,2)} – ${fmt(dHi,2)}<small>л</small>`;
     const pct = x => fmt(x, Number.isInteger(x)?0:1);
     $('hRows').innerHTML =
       `<dt>Чист алкохол в казана</dt><dd>${fmtL(pure)}</dd>`+
       `<dt>${pct(lo)} % от него</dt><dd>${fmtL(pLo)}</dd>`+
       `<dt>${pct(hi)} % от него</dt><dd>${fmtL(pHi)}</dd>`+
-      `<dt>Като първак с ${pct(S)}°</dt><dd>${fmtL(dLo)} – ${fmtL(dHi)}</dd>`;
-    $('hNote').hidden = A<=20;
-    $('hNote').innerHTML = '<b>Висок градус за казан.</b> Ако преваряваш мека ракия, процентите пак се смятат от чистия алкохол в нея.';
+      `<dt>Като първак със среден градус ${pct(S)}°</dt><dd>${fmtL(dLo)} – ${fmtL(dHi)}</dd>`;
+    $('hNote').hidden = A>=15;
+    $('hNote').innerHTML = '<b>Нисък градус за втора превара.</b> Това прилича на първа варка (джибри или вино). Сметката тук е за втората превара на мека ракия.';
   }
   ['hV','hA','hLo','hHi','hS'].forEach(id=>$(id).addEventListener('input',()=>{calcHeads();save();}));
 
