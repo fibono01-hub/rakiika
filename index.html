@@ -304,7 +304,7 @@ footer{color:var(--muted); font-size:12px; text-align:center}
       </div>
       <div class="row2">
         <div class="field"><label for="nTarget">Крайна цел</label><div class="inbox"><input id="nTarget" inputmode="decimal" value="45"><span class="unit">°</span></div></div>
-        <div class="field"><label for="nSteps">Брой стъпки <span class="opt">поне 4</span></label><div class="inbox"><input id="nSteps" inputmode="numeric" value="4"></div></div>
+        <div class="field"><label for="nSteps">Брой стъпки <span class="opt">препоръчват се поне 4</span></label><div class="inbox"><input id="nSteps" inputmode="numeric" value="4"></div></div>
       </div>
       <div class="field"><label for="nDate">Дата</label><div class="inbox"><input type="date" id="nDate"></div></div>
       <p class="empty">Препоръчителната крайна цел е 45°. Първата стъпка е днес, а всяка следваща — поне седмица по-късно.</p>
@@ -328,7 +328,7 @@ footer{color:var(--muted); font-size:12px; text-align:center}
         <div class="field"><label for="pSteps">Остават стъпки</label><div class="inbox"><input id="pSteps" inputmode="numeric"></div></div>
       </div>
       <h2>Препоръчителни стъпки</h2>
-      <p class="empty">До 46° — най-много 6° на стъпка, под 46° — най-много 2°. Между стъпките остави поне 1 седмица почивка, за да „намери себе си“. Датите са сметнати така.</p>
+      <p class="empty">До 46° — най-много 6° на стъпка, под 46° — най-много 2°; препоръчват се поне 4 стъпки общо. Броя на оставащите стъпки можеш да смениш сам. Водата е закръглена до кръгло количество, а последната стъпка е точна, за да стигнеш целта. Между стъпките остави поне 1 седмица почивка, за да „намери себе си“. Датите са сметнати така.</p>
       <div class="tbl"><table>
         <thead><tr><th>Стъпка</th><th>Дата</th><th>До</th><th>Вода</th><th>Обем</th></tr></thead>
         <tbody id="planBody"></tbody>
@@ -464,8 +464,10 @@ footer{color:var(--muted); font-size:12px; text-align:center}
 
 <script>
 (function(){
-  const APP_VERSION = '1.5';
+  const APP_VERSION = '1.5.2';
   const CHANGELOG = [
+    ['1.5.2','03.11.2026','Партида: водата в препоръчителните стъпки е закръглена (през 10 мл под 1 л, през 50 мл до 10 л); последната стъпка е точна до целта.'],
+    ['1.5.1','03.11.2026','Партида: поправени „празни“ стъпки около 46°; броят стъпки може да е и под 4, с предупреждение, че се препоръчват поне 4.'],
     ['1.5','03.11.2026','„Температура“ се казва „Температурна корекция“. Партида: препоръчителни стъпки по правила (поне 4, до 46° по най-много 6°, под 46° по най-много 2°, почивка 1 седмица), дати на стъпките, предупреждение при недостиг на стъпки, бутон за връщане на препоръчителните стъпки, номерация в дневника, редакция на партидата, изтриване на стъпка заедно със следващите, съвети за разреждане, цел по подразбиране 45°. Първак: за втората превара, 4–6 % при среден градус 80°, отказ от отговорност.'],
     ['1.4','02.10.2026','Нов таб „Ареометър“: градус от измерена плътност или относително тегло и температура. Нов таб „Първак“: чист алкохол в казана и колко първак да се отдели. Пренасяне на градуса и към „Първак“.'],
     ['1.3.2','29.09.2026','Реалният градус от таб „Температура“ се пренася с отделни бутони в „Колко вода?“, „Какъв градус?“ и „Партида“. Без отворена партида отива като начален градус на нова.'],
@@ -560,7 +562,7 @@ footer{color:var(--muted); font-size:12px; text-align:center}
     for(const s of b.steps){ vol = s.vol ?? s.predVol; abv = s.abv ?? s.predAbv; }
     return {vol,abv};
   }
-  let showNew=false, waterDirty=false, goalDirty=false;
+  let showNew=false, waterDirty=false, goalDirty=false, planFirst=null;
 
   // Правила за препоръчителните стъпки
   const MIN_STEPS=4, MAX_DROP=6, MAX_DROP_LOW=2, CLOUD=46, REST_DAYS=7;
@@ -569,7 +571,8 @@ footer{color:var(--muted); font-size:12px; text-align:center}
   function nextDate(b){ return b.steps.length ? addDays(b.steps[b.steps.length-1].date||today(), REST_DAYS) : today(); }
   // Колко стъпки са нужни най-малко от A до T: над 46° по 6°, под 46° по 2°.
   function zones(A,T){
-    const above=Math.max(0, A-Math.max(T,CLOUD)), below=Math.max(0, Math.min(A,CLOUD)-T);
+    let above=Math.max(0, A-Math.max(T,CLOUD)), below=Math.max(0, Math.min(A,CLOUD)-T);
+    if(above<0.05) above=0; if(below<0.05) below=0;   // остатъци от закръгляне не са стъпка
     return { above, below, m1:Math.ceil(above/MAX_DROP-1e-9), m2:Math.ceil(below/MAX_DROP_LOW-1e-9) };
   }
   // План с n стъпки. Ако n стигат — допълнителните стъпки отиват над 46°, където скокът е по-голям.
@@ -579,16 +582,37 @@ footer{color:var(--muted); font-size:12px; text-align:center}
     if(!(T>0) || T>=abv-0.05) return {rows:[], short:0, needed:0};
     const z=zones(abv,T), needed=z.m1+z.m2;
     let m1=z.m1, m2=z.m2;
-    if(n>needed){ if(z.above>0) m1+=n-needed; else m2+=n-needed; }
+    // Допълнителни стъпки (ако потребителят иска повече): всяка отива в зоната,
+    // където скокът на стъпка в момента е най-голям — така няма стъпки „на място“.
+    for(let k=needed;k<n;k++){
+      const d1 = m1? z.above/m1 : (z.above>0? Infinity:0), d2 = m2? z.below/m2 : (z.below>0? Infinity:0);
+      if(d1<=0 && d2<=0) break;
+      if(d1>=d2) m1++; else m2++;
+    }
     const marks=[];
     const top=Math.max(T,CLOUD);
     for(let i=1;i<=m1;i++) marks.push(abv-(abv-top)*i/m1);
-    const from=Math.min(abv,CLOUD);
+    const from = m1 ? Math.min(abv,CLOUD) : abv;
     for(let i=1;i<=m2;i++) marks.push(from-(from-T)*i/m2);
     const take=Math.min(n,marks.length), rows=[]; let V=vol, A=abv, date=nextDate(b);
     for(let i=0;i<take;i++){
-      const B=marks[i], r=waterFor(V,A,B);
-      rows.push({i:i+1,B,water:r.water,vol:r.vol,date}); V=r.vol; A=B; date=addDays(date,REST_DAYS);
+      const isLast = i===marks.length-1;           // последната стъпка до целта остава точна
+      const exact=waterFor(V,A,marks[i]).water;
+      let w=exact;
+      if(!isLast){
+        // Кръгло количество вода: под 1 л — през 10 мл, до 10 л — през 50 мл, над това — през 100 мл.
+        // Пробваме най-близкото кръгло, после другото; приемаме само ако спазва правилата за скока
+        // и не минава целта. Иначе оставяме точното.
+        const unit = exact<1 ? 0.01 : exact<10 ? 0.05 : 0.1;
+        const near=Math.round(exact/unit)*unit, other = near>exact ? Math.floor(exact/unit)*unit : Math.ceil(exact/unit)*unit;
+        for(const c of [near, other]){
+          if(!(c>0)) continue;
+          const nb=abvAfter(V,A,c).abv, cap = nb < CLOUD-1e-9 ? MAX_DROP_LOW : MAX_DROP;
+          if(A-nb <= cap+1e-9 && nb > T+0.05){ w=+c.toFixed(2); break; }
+        }
+      }
+      const r=abvAfter(V,A,w), B = isLast ? T : r.abv;
+      rows.push({i:i+1,B,water:w,vol:r.vol,date}); V=r.vol; A=B; date=addDays(date,REST_DAYS);
     }
     return {rows, short:Math.max(0,needed-n), needed};
   }
@@ -626,12 +650,16 @@ footer{color:var(--muted); font-size:12px; text-align:center}
     $('planNote').textContent = done ? `Партидата е на ${fmt(abv,1)}°, целта е достигната. Ако искаш още, смени крайната цел.` : '';
     $('planEnd').hidden = done;
     if(last) $('planEnd').innerHTML = `Ако спазиш всички стъпки: <b>${fmt(last.vol,2)} л на ${fmt(last.B,1)}°</b> около ${fDate(last.date)}.`;
-    $('planWarn').hidden = !plan.short;
-    if(plan.short) $('planWarn').innerHTML = `<b>${b.stepsLeft} ${b.stepsLeft===1?'стъпка не стига':'стъпки не стигат'}.</b> С тях при тези правила стигаш до ${fmt(last.B,1)}°. За ${fmt(b.target,1)}° ${plan.short===1?'ще е нужна още 1 стъпка':`ще са нужни още ${plan.short} стъпки`}. Натисни „Върни препоръчителните стъпки“, за да ги добавиш.`;
+    const total=b.steps.length+b.stepsLeft, fewWarn = !done && total<MIN_STEPS
+      ? `<b>Препоръчват се поне ${MIN_STEPS} стъпки общо.</b> Сега са ${total} (${b.steps.length} направени и ${b.stepsLeft} оставащи). По-малко стъпки значи по-големи скокове и по-голям риск от помътняване.` : '';
+    $('planWarn').hidden = !plan.short && !fewWarn;
+    $('planWarn').innerHTML = fewWarn;
+    if(plan.short) $('planWarn').innerHTML = (fewWarn? fewWarn+'<br><br>' : '') + `<b>${b.stepsLeft} ${b.stepsLeft===1?'стъпка не стига':'стъпки не стигат'}.</b> С тях при тези правила стигаш до ${fmt(last.B,1)}°. За ${fmt(b.target,1)}° ${plan.short===1?'ще е нужна още 1 стъпка':`ще са нужни още ${plan.short} стъпки`}. Натисни „Върни препоръчителните стъпки“, за да ги добавиш.`;
     const rec=recSteps(b);
     $('planReset').hidden = done || (b.stepsLeft===rec && !goalDirty && !waterDirty);
 
     $('stepTitle').textContent = `Стъпка ${b.steps.length+1}`;
+    planFirst = rows[0] || null;
     if(!goalDirty) $('sGoal').value = rows.length ? fmt(rows[0].B,1).replace(/\s/g,'') : '';
     if(!$('sDate').value) $('sDate').value=nextDate(b);
     updateStep(b);
@@ -652,7 +680,8 @@ footer{color:var(--muted); font-size:12px; text-align:center}
     const {vol,abv}=stateOf(b);
     const G=num($('sGoal'));
     if(!waterDirty){
-      if(G>0 && G<abv) $('sWater').value = fmt(waterFor(vol,abv,G).water,2).replace(/\s/g,'');
+      if(!goalDirty && planFirst) $('sWater').value = fmt(planFirst.water,2).replace(/\s/g,'');
+      else if(G>0 && G<abv) $('sWater').value = fmt(waterFor(vol,abv,G).water,2).replace(/\s/g,'');
       else $('sWater').value='';
     }
     const Wv=num($('sWater'));
@@ -678,6 +707,7 @@ footer{color:var(--muted); font-size:12px; text-align:center}
   $('bNewBtn').addEventListener('click',()=>{ showNew=true; $('nMsg').textContent=''; renderBatch(); $('nName').focus(); });
   $('nCancel').addEventListener('click',()=>{ showNew=false; renderBatch(); });
   $('bEditBtn').addEventListener('click',()=>{ if(curB()) openEdit(-1); });
+  $('nSteps').addEventListener('input',()=>{ const n=Math.round(num($('nSteps'))); $('nMsg').textContent = n>0&&n<MIN_STEPS ? 'Може и така, но се препоръчват поне 4 стъпки.' : ''; });
   $('planReset').addEventListener('click',()=>{ const b=curB(); if(!b) return; b.stepsLeft=recSteps(b); goalDirty=false; waterDirty=false; $('sGoal').value=''; $('sWater').value=''; dbSave(); renderBatch(); });
   $('bDelBtn').addEventListener('click',e=>arm(e.currentTarget,'Натисни пак за изтриване',()=>{
     db.batches=db.batches.filter(b=>b.id!==db.cur); db.cur=db.batches[0]?.id||null; dbSave(); resetStep(); renderBatch();
@@ -687,7 +717,7 @@ footer{color:var(--muted); font-size:12px; text-align:center}
     if(!(V>0)) return $('nMsg').textContent='Въведи обема в литри.';
     if(!(A>0&&A<=100)) return $('nMsg').textContent='Градусът трябва да е между 0 и 100.';
     if(!(T>0&&T<A)) return $('nMsg').textContent='Крайната цел трябва да е под сегашния градус.';
-    if(!(n>=MIN_STEPS)) return $('nMsg').textContent='Стъпките трябва да са поне 4.';
+    if(!(n>=1)) return $('nMsg').textContent='Въведи поне 1 стъпка.';
     const b={ id:Date.now().toString(36), name:$('nName').value.trim()||('Партида '+fDate($('nDate').value||today())),
       target:T, stepsLeft:n, start:{date:$('nDate').value||today(), vol:V, abv:A}, steps:[] };
     db.batches.unshift(b); db.cur=b.id; showNew=false; dbSave();
