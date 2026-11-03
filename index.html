@@ -316,8 +316,8 @@ footer{color:var(--muted); font-size:12px; text-align:center}
     </form>
 
     <section class="card" id="curCard" hidden>
-      <h2>Сега в съда</h2>
-      <p class="empty">Това е състоянието в съда, ако са направени всички стъпки от дневника по-долу: с измерените стойности, където ги има, и с изчислените, където няма.</p>
+      <h2 id="nowTitle">Сега в съда</h2>
+      <p class="empty" id="nowText"></p>
       <div class="state">
         <div><span class="k">Обем</span><span class="v" id="sVol">—</span></div>
         <div><span class="k">Градус</span><span class="v c" id="sAbv">—</span></div>
@@ -464,8 +464,10 @@ footer{color:var(--muted); font-size:12px; text-align:center}
 
 <script>
 (function(){
-  const APP_VERSION = '1.5.2';
+  const APP_VERSION = '1.5.4';
   const CHANGELOG = [
+    ['1.5.4','03.11.2026','Партида: „Сега в съда“ става „Очаквано след …“, когато в дневника има стъпки с бъдеща дата.'],
+    ['1.5.3','03.11.2026','Партида: малък остатък над 46° след закръглена вода вече не добавя излишна стъпка с няколко мл вода.'],
     ['1.5.2','03.11.2026','Партида: водата в препоръчителните стъпки е закръглена (през 10 мл под 1 л, през 50 мл до 10 л); последната стъпка е точна до целта.'],
     ['1.5.1','03.11.2026','Партида: поправени „празни“ стъпки около 46°; броят стъпки може да е и под 4, с предупреждение, че се препоръчват поне 4.'],
     ['1.5','03.11.2026','„Температура“ се казва „Температурна корекция“. Партида: препоръчителни стъпки по правила (поне 4, до 46° по най-много 6°, под 46° по най-много 2°, почивка 1 седмица), дати на стъпките, предупреждение при недостиг на стъпки, бутон за връщане на препоръчителните стъпки, номерация в дневника, редакция на партидата, изтриване на стъпка заедно със следващите, съвети за разреждане, цел по подразбиране 45°. Първак: за втората превара, 4–6 % при среден градус 80°, отказ от отговорност.'],
@@ -563,6 +565,8 @@ footer{color:var(--muted); font-size:12px; text-align:center}
     return {vol,abv};
   }
   let showNew=false, waterDirty=false, goalDirty=false, planFirst=null;
+  // Вода в литри за полето: кръглите количества с 2 знака (0,33), точните с 3 (0,101), за да не се губят милилитри.
+  const wTxt = w => fmt(w, Math.abs(w*100-Math.round(w*100))<1e-6 ? 2 : 3).replace(/\s/g,'');
 
   // Правила за препоръчителните стъпки
   const MIN_STEPS=4, MAX_DROP=6, MAX_DROP_LOW=2, CLOUD=46, REST_DAYS=7;
@@ -573,6 +577,9 @@ footer{color:var(--muted); font-size:12px; text-align:center}
   function zones(A,T){
     let above=Math.max(0, A-Math.max(T,CLOUD)), below=Math.max(0, Math.min(A,CLOUD)-T);
     if(above<0.05) above=0; if(below<0.05) below=0;   // остатъци от закръгляне не са стъпка
+    // Малък остатък над 46° (под 2°, напр. 46,1° след закръглена вода) не е отделна стъпка:
+    // слива се със зоната под 46°, където всяка стъпка е до 2°.
+    if(above>0 && above<MAX_DROP_LOW && below>0){ below+=above; above=0; }
     return { above, below, m1:Math.ceil(above/MAX_DROP-1e-9), m2:Math.ceil(below/MAX_DROP_LOW-1e-9) };
   }
   // План с n стъпки. Ако n стигат — допълнителните стъпки отиват над 46°, където скокът е по-голям.
@@ -637,6 +644,16 @@ footer{color:var(--muted); font-size:12px; text-align:center}
     if(creating || !b) return;
 
     const {vol,abv}=stateOf(b);
+    // Заглавието зависи от датите: ако има записани стъпки с бъдеща дата, това още не е „сега“.
+    const lastDate = b.steps.length ? b.steps[b.steps.length-1].date : b.start.date;
+    const future = b.steps.length && lastDate > today();
+    const pending = b.steps.filter(x=>x.date>today()).length;
+    $('nowTitle').textContent = !b.steps.length ? 'Сега в съда' : future ? `Очаквано след ${fDate(lastDate)}` : 'Сега в съда';
+    $('nowText').textContent = !b.steps.length
+      ? 'Началното състояние на партидата. Още няма записани стъпки.'
+      : future
+        ? `Така ще е в съда, когато направиш и ${pending===1?'записаната стъпка с бъдеща дата':`записаните ${pending} стъпки с бъдеща дата`} (последната е на ${fDate(lastDate)}). Където няма измерени стойности, числата са изчислени.`
+        : `${b.steps.length===1?'След записаната стъпка':`След всички ${b.steps.length} записани стъпки`} от дневника по-долу. Където няма измерени стойности, числата са изчислени.`;
     $('sVol').textContent = fmt(vol,2)+' л';
     $('sAbv').textContent = fmt(abv,1)+'°';
     $('sTgt').textContent = fmt(b.target,1)+'°';
@@ -669,7 +686,7 @@ footer{color:var(--muted); font-size:12px; text-align:center}
     let h=`<tr class="start${selC(-1)}" data-i="-1"><td>—</td><td>${fDate(b.start.date)}</td><td>начало</td><td>${fmt(b.start.vol,2)}</td><td>${fmt(b.start.abv,1)}°</td><td class="ed">✎</td></tr>`;
     b.steps.forEach((s,i)=>{
       const vReal=s.vol!=null, aReal=s.abv!=null;
-      h+=`<tr class="${selC(i)}" data-i="${i}"><td>${i+1}</td><td>${fDate(s.date)}${s.note?`<span class="p" style="font-family:var(--body)">${esc(s.note)}</span>`:''}</td><td>${fmt(s.water,2)}</td>`+
+      h+=`<tr class="${selC(i)}" data-i="${i}"><td>${i+1}</td><td>${fDate(s.date)}${s.note?`<span class="p" style="font-family:var(--body)">${esc(s.note)}</span>`:''}</td><td>${fmtL(s.water)}</td>`+
          `<td>${fmt(vReal?s.vol:s.predVol,2)}${vReal?`<span class="p">${fmt(s.predVol,2)}</span>`:'<span class="p">изчисл.</span>'}</td>`+
          `<td>${fmt(aReal?s.abv:s.predAbv,1)}°${aReal?`<span class="p">${fmt(s.predAbv,1)}°</span>`:'<span class="p">изчисл.</span>'}</td><td class="ed">✎</td></tr>`;
     });
@@ -680,8 +697,8 @@ footer{color:var(--muted); font-size:12px; text-align:center}
     const {vol,abv}=stateOf(b);
     const G=num($('sGoal'));
     if(!waterDirty){
-      if(!goalDirty && planFirst) $('sWater').value = fmt(planFirst.water,2).replace(/\s/g,'');
-      else if(G>0 && G<abv) $('sWater').value = fmt(waterFor(vol,abv,G).water,2).replace(/\s/g,'');
+      if(!goalDirty && planFirst) $('sWater').value = wTxt(planFirst.water);
+      else if(G>0 && G<abv) $('sWater').value = wTxt(waterFor(vol,abv,G).water);
       else $('sWater').value='';
     }
     const Wv=num($('sWater'));
